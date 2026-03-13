@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 
+// Note: Favorites are stored in user's notificationPreferences JSON field as a workaround
+// until a proper UserFavorite model is added to the schema
+
 export async function GET() {
   try {
     const session = await auth();
@@ -16,22 +19,26 @@ export async function GET() {
     const user = await db.user.findUnique({
       where: { id: session.user.id },
       select: {
-        favouriteFacilities: {
-          include: {
-            region: {
-              select: { name: true },
-            },
-            district: {
-              select: { name: true },
-            },
-          },
-        },
+        notificationPreferences: true,
       },
     });
 
-    return NextResponse.json({
-      favorites: user?.favouriteFacilities || [],
+    const prefs = user?.notificationPreferences as { favoriteIds?: string[] } | null;
+    const favoriteIds = prefs?.favoriteIds || [];
+
+    if (favoriteIds.length === 0) {
+      return NextResponse.json({ favorites: [] });
+    }
+
+    const favorites = await db.facility.findMany({
+      where: { id: { in: favoriteIds } },
+      include: {
+        region: { select: { name: true } },
+        district: { select: { name: true } },
+      },
     });
+
+    return NextResponse.json({ favorites });
   } catch (error) {
     console.error("Error fetching favorites:", error);
     return NextResponse.json(
@@ -45,7 +52,7 @@ export async function POST(request: NextRequest) {
   try {
     const session = await auth();
 
-    if (!session?.user) {
+    if (!session?.user?.id) {
       return NextResponse.json(
         { error: "You must be logged in to add favorites" },
         { status: 401 }
@@ -74,13 +81,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Add to favorites
+    // Get current favorites
+    const user = await db.user.findUnique({
+      where: { id: session.user.id },
+      select: { notificationPreferences: true },
+    });
+
+    const prefs = (user?.notificationPreferences as { favoriteIds?: string[] } | null) || {};
+    const favoriteIds = prefs.favoriteIds || [];
+
+    if (!favoriteIds.includes(facilityId)) {
+      favoriteIds.push(facilityId);
+    }
+
+    // Update favorites
     await db.user.update({
       where: { id: session.user.id },
       data: {
-        favouriteFacilities: {
-          connect: { id: facilityId },
-        },
+        notificationPreferences: { ...prefs, favoriteIds },
       },
     });
 
@@ -100,7 +118,7 @@ export async function DELETE(request: NextRequest) {
   try {
     const session = await auth();
 
-    if (!session?.user) {
+    if (!session?.user?.id) {
       return NextResponse.json(
         { error: "You must be logged in to remove favorites" },
         { status: 401 }
@@ -117,13 +135,20 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // Remove from favorites
+    // Get current favorites
+    const user = await db.user.findUnique({
+      where: { id: session.user.id },
+      select: { notificationPreferences: true },
+    });
+
+    const prefs = (user?.notificationPreferences as { favoriteIds?: string[] } | null) || {};
+    const favoriteIds = (prefs.favoriteIds || []).filter((id: string) => id !== facilityId);
+
+    // Update favorites
     await db.user.update({
       where: { id: session.user.id },
       data: {
-        favouriteFacilities: {
-          disconnect: { id: facilityId },
-        },
+        notificationPreferences: { ...prefs, favoriteIds },
       },
     });
 
