@@ -520,7 +520,7 @@ async function seedFacilities() {
         districtId: districtId,
         latitude: facility.latitude,
         longitude: facility.longitude,
-        nhisAccredited: facility.nhisAccredited,
+        nhisAccepted: facility.nhisAccredited,
         emergencyCapable: facility.emergencyCapable,
         ambulanceAvailable: facility.ambulanceAvailable,
         bedCount: facility.bedCount,
