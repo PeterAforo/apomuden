@@ -475,8 +475,8 @@ export async function POST() {
           description: facility.description,
           status: "APPROVED",
           tier: facility.type === "HOSPITAL" ? "FOUR_STAR" : facility.type === "POLYCLINIC" ? "THREE_STAR" : "TWO_STAR",
-          rating: 4.0 + Math.random() * 0.9,
-          reviewCount: Math.floor(Math.random() * 50) + 10,
+          averageRating: 4.0 + Math.random() * 0.9,
+          totalReviews: Math.floor(Math.random() * 50) + 10,
         },
       });
 
