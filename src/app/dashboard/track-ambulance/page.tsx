@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
@@ -14,8 +14,11 @@ import {
   Loader2,
   AlertCircle,
   CheckCircle,
-  RefreshCw
+  RefreshCw,
+  Wifi,
+  WifiOff
 } from "lucide-react";
+import { subscribeToAmbulanceLocation, AmbulanceLocation as WSAmbulanceLocation } from "@/lib/websocket";
 
 interface AmbulanceLocation {
   id: string;
@@ -24,9 +27,11 @@ interface AmbulanceLocation {
   driverPhone: string;
   latitude: number;
   longitude: number;
-  eta: number; // minutes
+  eta: number;
   status: "EN_ROUTE" | "ARRIVED" | "RETURNING";
   lastUpdated: string;
+  speed?: number;
+  heading?: number;
 }
 
 interface EmergencyRequest {
@@ -41,21 +46,62 @@ export default function TrackAmbulancePage() {
   const [request, setRequest] = useState<EmergencyRequest | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [isConnected, setIsConnected] = useState(false);
   const mapRef = useRef<HTMLDivElement>(null);
-  const [mapLoaded, setMapLoaded] = useState(false);
+  const unsubscribeRef = useRef<(() => void) | null>(null);
+
+  const handleLocationUpdate = useCallback((data: WSAmbulanceLocation) => {
+    setRequest(prev => {
+      if (!prev?.ambulance) return prev;
+      
+      // Calculate new ETA based on speed and distance (simplified)
+      const currentEta = prev.ambulance.eta;
+      const newEta = Math.max(0, currentEta - 0.1); // Decrease ETA gradually
+      const newStatus = newEta <= 0.5 ? "ARRIVED" : "EN_ROUTE";
+      
+      return {
+        ...prev,
+        ambulance: {
+          ...prev.ambulance,
+          latitude: data.latitude,
+          longitude: data.longitude,
+          speed: data.speed,
+          heading: data.heading,
+          eta: Math.round(newEta),
+          status: newStatus as "EN_ROUTE" | "ARRIVED" | "RETURNING",
+          lastUpdated: data.timestamp,
+        },
+      };
+    });
+  }, []);
 
   useEffect(() => {
     fetchEmergencyRequest();
     
-    // Simulate real-time updates every 5 seconds
-    const interval = setInterval(() => {
-      if (request?.ambulance && request.ambulance.status === "EN_ROUTE") {
-        simulateLocationUpdate();
+    return () => {
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current();
       }
-    }, 5000);
-
-    return () => clearInterval(interval);
+    };
   }, []);
+
+  // Subscribe to WebSocket when ambulance is available
+  useEffect(() => {
+    if (request?.ambulance?.id) {
+      setIsConnected(true);
+      unsubscribeRef.current = subscribeToAmbulanceLocation(
+        request.ambulance.id,
+        handleLocationUpdate
+      );
+    }
+    
+    return () => {
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current();
+        setIsConnected(false);
+      }
+    };
+  }, [request?.ambulance?.id, handleLocationUpdate]);
 
   const fetchEmergencyRequest = async () => {
     try {
@@ -71,30 +117,6 @@ export default function TrackAmbulancePage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const simulateLocationUpdate = () => {
-    if (!request?.ambulance) return;
-
-    // Simulate ambulance moving closer
-    setRequest(prev => {
-      if (!prev?.ambulance) return prev;
-      
-      const newEta = Math.max(0, prev.ambulance.eta - 1);
-      const newStatus = newEta === 0 ? "ARRIVED" : "EN_ROUTE";
-      
-      return {
-        ...prev,
-        ambulance: {
-          ...prev.ambulance,
-          eta: newEta,
-          status: newStatus as "EN_ROUTE" | "ARRIVED" | "RETURNING",
-          latitude: prev.ambulance.latitude + (Math.random() - 0.5) * 0.001,
-          longitude: prev.ambulance.longitude + (Math.random() - 0.5) * 0.001,
-          lastUpdated: new Date().toISOString(),
-        },
-      };
-    });
   };
 
   const getStatusColor = (status: string) => {
@@ -173,6 +195,21 @@ export default function TrackAmbulancePage() {
                     </div>
                   </div>
                   
+                  {/* Connection Status */}
+                  <div className="absolute top-4 left-4 bg-white rounded-lg shadow-lg px-3 py-2 flex items-center gap-2">
+                    {isConnected ? (
+                      <>
+                        <Wifi className="h-4 w-4 text-green-500" />
+                        <span className="text-sm text-green-600">Live</span>
+                      </>
+                    ) : (
+                      <>
+                        <WifiOff className="h-4 w-4 text-gray-400" />
+                        <span className="text-sm text-gray-500">Connecting...</span>
+                      </>
+                    )}
+                  </div>
+                  
                   {/* ETA Overlay */}
                   <div className="absolute top-4 right-4 bg-white rounded-lg shadow-lg p-4">
                     <div className="text-center">
@@ -180,6 +217,11 @@ export default function TrackAmbulancePage() {
                       <p className="text-3xl font-bold text-red-600">
                         {request.ambulance.eta} min
                       </p>
+                      {request.ambulance.speed && (
+                        <p className="text-xs text-gray-400 mt-1">
+                          Speed: {request.ambulance.speed} km/h
+                        </p>
+                      )}
                     </div>
                   </div>
                 </CardContent>

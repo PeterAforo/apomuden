@@ -17,7 +17,11 @@ import {
   CheckCircle,
   AlertCircle,
   Search,
-  Star
+  Star,
+  VideoOff,
+  Mic,
+  MicOff,
+  PhoneOff
 } from "lucide-react";
 
 interface Doctor {
@@ -39,6 +43,7 @@ interface Appointment {
   time: string;
   status: "SCHEDULED" | "COMPLETED" | "CANCELLED";
   meetingLink?: string;
+  roomName?: string;
 }
 
 export default function TelemedicinePage() {
@@ -52,6 +57,8 @@ export default function TelemedicinePage() {
   const [selectedSlot, setSelectedSlot] = useState("");
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [isBooking, setIsBooking] = useState(false);
+  const [joiningCall, setJoiningCall] = useState<string | null>(null);
+  const [activeCall, setActiveCall] = useState<{ roomUrl: string; appointmentId: string } | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -111,6 +118,38 @@ export default function TelemedicinePage() {
     }
   };
 
+  const handleJoinCall = async (appointment: Appointment) => {
+    setJoiningCall(appointment.id);
+    try {
+      // Create video room for the appointment
+      const response = await fetch("/api/telemedicine/video-room", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          appointmentId: appointment.id,
+          doctorName: appointment.doctorName,
+          patientName: "Patient",
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setActiveCall({
+          roomUrl: data.roomUrl,
+          appointmentId: appointment.id,
+        });
+      }
+    } catch (error) {
+      console.error("Error joining call:", error);
+    } finally {
+      setJoiningCall(null);
+    }
+  };
+
+  const handleEndCall = () => {
+    setActiveCall(null);
+  };
+
   const filteredDoctors = doctors.filter(doctor => {
     const matchesSearch = doctor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          doctor.specialty.toLowerCase().includes(searchTerm.toLowerCase());
@@ -119,6 +158,39 @@ export default function TelemedicinePage() {
   });
 
   const specialties = Array.from(new Set(doctors.map(d => d.specialty)));
+
+  // Active video call modal
+  if (activeCall) {
+    return (
+      <div className="fixed inset-0 bg-black z-50 flex flex-col">
+        {/* Video Call Header */}
+        <div className="bg-gray-900 px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Video className="h-5 w-5 text-green-500" />
+            <span className="text-white font-medium">Telemedicine Consultation</span>
+          </div>
+          <Button 
+            onClick={handleEndCall}
+            variant="destructive"
+            size="sm"
+            className="bg-red-600 hover:bg-red-700"
+          >
+            <PhoneOff className="h-4 w-4 mr-2" />
+            End Call
+          </Button>
+        </div>
+        
+        {/* Video Call iframe */}
+        <div className="flex-1">
+          <iframe
+            src={activeCall.roomUrl}
+            allow="camera; microphone; fullscreen; speaker; display-capture"
+            className="w-full h-full border-0"
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -164,14 +236,23 @@ export default function TelemedicinePage() {
                         </span>
                       </div>
                     </div>
-                    {apt.meetingLink && (
-                      <a href={apt.meetingLink} target="_blank" rel="noopener noreferrer">
-                        <Button className="bg-blue-600 hover:bg-blue-700">
+                    <Button 
+                      onClick={() => handleJoinCall(apt)}
+                      disabled={joiningCall === apt.id}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      {joiningCall === apt.id ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Connecting...
+                        </>
+                      ) : (
+                        <>
                           <Video className="h-4 w-4 mr-2" />
                           Join Call
-                        </Button>
-                      </a>
-                    )}
+                        </>
+                      )}
+                    </Button>
                   </div>
                 ))}
               </div>

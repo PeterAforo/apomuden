@@ -22,13 +22,12 @@ VAPID_PRIVATE_KEY="your-private-vapid-key"
 VAPID_SUBJECT="mailto:admin@apomuden.gov.gh"
 ```
 
-### 4. SMS Gateway (Hubtel)
-Sign up at: https://hubtel.com/
+### 4. SMS Gateway (mNotify)
+Sign up at: https://mnotify.com/
 
 ```env
-HUBTEL_CLIENT_ID="your-hubtel-client-id"
-HUBTEL_CLIENT_SECRET="your-hubtel-client-secret"
-HUBTEL_SENDER_ID="APOMUDEN"
+MNOTIFY_API_KEY="your-mnotify-api-key"
+MNOTIFY_SENDER_ID="Apomuden"
 ```
 
 ### 5. Maps (Mapbox)
@@ -38,7 +37,25 @@ Get API key at: https://mapbox.com/
 NEXT_PUBLIC_MAPBOX_TOKEN="your-mapbox-access-token"
 ```
 
-### 6. AI/Chatbot (Optional - for enhanced responses)
+### 6. Real-time WebSocket (Pusher)
+Sign up at: https://pusher.com/
+
+```env
+NEXT_PUBLIC_PUSHER_KEY="your-pusher-app-key"
+NEXT_PUBLIC_PUSHER_CLUSTER="eu"
+PUSHER_APP_ID="your-pusher-app-id"
+PUSHER_SECRET="your-pusher-secret"
+```
+
+### 7. Video Calls (Daily.co)
+Sign up at: https://daily.co/
+
+```env
+DAILY_API_KEY="your-daily-api-key"
+NEXT_PUBLIC_DAILY_DOMAIN="your-daily-domain"
+```
+
+### 8. AI/Chatbot (Optional - for enhanced responses)
 ```env
 OPENAI_API_KEY="your-openai-api-key"
 # OR
@@ -70,27 +87,22 @@ ANTHROPIC_API_KEY="your-anthropic-api-key"
 - [ ] Facility search returns results
 - [ ] Map displays correctly
 - [ ] Push notifications can be subscribed
-- [ ] SMS sending works (test with Hubtel sandbox)
+- [ ] SMS sending works (test with mNotify)
 - [ ] Chatbot responds in all 5 languages
 
 ---
 
 ## Optional Enhancements (Future)
 
-### Real-time WebSocket for GPS Tracking
-Currently using polling simulation. For real-time:
-- Use Pusher, Ably, or Socket.io
-- Update `src/app/dashboard/track-ambulance/page.tsx`
-
-### Video Calls for Telemedicine
-Currently mock implementation. For real video:
-- Integrate Twilio Video, Daily.co, or Jitsi
-- Update `src/app/dashboard/telemedicine/page.tsx`
-
 ### Cloud Image Storage
 Currently using base64. For production:
 - Use Cloudinary, AWS S3, or Vercel Blob
 - Update `src/app/register-facility/page.tsx`
+
+### Real-time Features (Already Implemented)
+- **GPS Tracking**: Uses Pusher for real-time ambulance location updates
+- **Video Calls**: Uses Daily.co for telemedicine consultations
+- Both fall back to simulation/mock mode if API keys are not configured
 
 ---
 
