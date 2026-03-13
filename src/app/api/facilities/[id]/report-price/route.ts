@@ -41,6 +41,13 @@ export async function POST(
       );
     }
 
+    if (!session.user.id) {
+      return NextResponse.json(
+        { error: "User ID not found" },
+        { status: 401 }
+      );
+    }
+
     // Create audit log for price discrepancy report
     await db.auditLog.create({
       data: {
