@@ -198,10 +198,125 @@ Could you please be more specific about what you need? For example:
 I'm here to help! 🌟`;
 }
 
+// Language-specific response wrappers
+const LANGUAGE_RESPONSES: Record<string, Record<string, string>> = {
+  tw: {
+    emergency: `🚨 **Wɔ ntɛm mmoa ho a, frɛ ntɛm:**
+- **112** - Ghana Ntɛm Nɔma
+- **193** - Ambulance Adwuma
+
+Wo betumi de yɛn Emergency Request feature adi dwuma:
+1. Klik "Emergency" button wɔ header no mu
+2. Anaasɛ kɔ /emergency wɔ yɛn platform so
+3. Yi wo emergency type
+4. Yɛbɛhu wo beae no ankasa
+5. Emergency services bɛba wo nkyɛn
+
+Biribi foforo wɔ hɔ a metumi aboa wo?`,
+    greeting: `Akwaaba! 👋 Me din de Kwasi, wo AI apɔmuden boafo wɔ Apomuden so.
+
+Metumi aboa wo wɔ:
+- 🏥 Ayaresabea, clinic, ne pharmacy ho hwehwɛ
+- 🚑 Ntɛm mmoa abisade
+- 💳 NHIS ho nsɛm
+- 📰 Apɔmuden nsɛm ne kɔkɔbɔ
+- 📅 Bere hyɛ nkyerɛkyerɛmu
+
+Dɛn na wopɛ sɛ meboa wo wɔ ɛnnɛ?`,
+  },
+  ga: {
+    emergency: `🚨 **Gbɛkɛ bɔ ni, yɛlɛ ntɛm:**
+- **112** - Ghana Gbɛkɛ Nɔmba
+- **193** - Ambulance
+
+Tɛŋ yɛ Emergency Request feature:
+1. Klik "Emergency" button
+2. Kɛ kɔ /emergency
+3. Yi bo gbɛkɛ type
+4. Miihu bo teŋ
+5. Gbɛkɛ bɔ baa
+
+Mɛni fofo lɛ miitɛŋ bɔ bo?`,
+    greeting: `Ojekoo! 👋 Mi ŋmɛi lɛ Kwasi, bo AI duŋ botsɛ wɔ Apomuden ji.
+
+Miitɛŋ bɔ bo wɔ:
+- 🏥 Duŋ shishi fɛɛ
+- 🚑 Gbɛkɛ bɔ
+- 💳 NHIS shi
+- 📰 Duŋ tsɔtsɔ
+- 📅 Bere hyɛ
+
+Mɛni lɛ bopɛ miibɔ bo enyɔ?`,
+  },
+  ee: {
+    emergency: `🚨 **Kpekpe me, yɔ enumake:**
+- **112** - Ghana Kpekpe Xexlẽdzesi
+- **193** - Ambulance
+
+Zã míaƒe Emergency Request feature:
+1. Klik "Emergency" button
+2. Alo yi ɖe /emergency
+3. Tia wò kpekpe ƒomevi
+4. Míakpɔ wò nɔƒe
+5. Kpekpe kpɔɖeŋu ava
+
+Nuka bubu mate ŋu akpe ɖe ŋuwò?`,
+    greeting: `Woezɔ! 👋 Ŋkɔnye nye Kwasi, wò AI lãmesẽ kpɔɖeŋutɔ le Apomuden dzi.
+
+Mate ŋu akpe ɖe ŋuwò le:
+- 🏥 Atikewɔƒewo didi
+- 🚑 Kpekpe kpɔɖeŋu biabia
+- 💳 NHIS nyawo
+- 📰 Lãmesẽ nyatsɔtsɔwo
+- 📅 Ŋkeke ŋlɔŋlɔ alɔdzeɖeŋu
+
+Aleke nàdi be makpe ɖe ŋuwò egbe?`,
+  },
+  ha: {
+    emergency: `🚨 **Don gaggawa, kira nan take:**
+- **112** - Lambar Gaggawa ta Ghana
+- **193** - Sabis na Motar Asibiti
+
+Za fasalin Neman Gaggawa:
+1. Danna maɓallin "Emergency"
+2. Ko je /emergency
+3. Zaɓi nau'in gaggawar ka
+4. Za mu gano wurin ka
+5. Za a aiko maka da taimako
+
+Akwai wani abu da zan taimaka?`,
+    greeting: `Sannu! 👋 Sunana Kwasi, mataimakin lafiya na AI a Apomuden.
+
+Zan iya taimaka maka da:
+- 🏥 Nemo asibitoci, kilinik, da kantin magani
+- 🚑 Neman sabis na gaggawa
+- 💳 Bayani game da NHIS
+- 📰 Labaran lafiya da faɗakarwa
+- 📅 Jagorar yin alƙawari
+
+Me kake so in taimaka maka yau?`,
+  },
+};
+
+function getLocalizedResponse(response: string, language: string): string {
+  // For non-English languages, try to provide localized responses
+  if (language !== "en" && LANGUAGE_RESPONSES[language]) {
+    // Check for emergency response
+    if (response.includes("112") || response.includes("emergency")) {
+      return LANGUAGE_RESPONSES[language].emergency || response;
+    }
+    // Check for greeting
+    if (response.includes("Hello!") || response.includes("👋")) {
+      return LANGUAGE_RESPONSES[language].greeting || response;
+    }
+  }
+  return response;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { message, history } = body;
+    const { message, history, language = "en" } = body;
 
     if (!message) {
       return NextResponse.json(
@@ -211,7 +326,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate response (in production, this would call an AI API like Claude or GPT)
-    const response = generateResponse(message, history || []);
+    let response = generateResponse(message, history || []);
+    
+    // Apply language localization
+    response = getLocalizedResponse(response, language);
 
     return NextResponse.json({
       success: true,

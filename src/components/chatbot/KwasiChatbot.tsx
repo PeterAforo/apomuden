@@ -2,8 +2,10 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageCircle, X, Send, Bot, User, Loader2, Minimize2, Maximize2 } from "lucide-react";
+import { MessageCircle, X, Send, Bot, User, Loader2, Minimize2, Maximize2, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
+
+type Language = "en" | "tw" | "ga" | "ee" | "ha";
 
 interface Message {
   id: string;
@@ -12,28 +14,81 @@ interface Message {
   timestamp: Date;
 }
 
-const INITIAL_MESSAGE: Message = {
-  id: "welcome",
-  role: "assistant",
-  content: "Hello! I'm Kwasi, your AI health assistant. I can help you find healthcare facilities, understand health conditions, navigate the Apomuden platform, or answer general health questions. How can I assist you today?",
-  timestamp: new Date(),
+const LANGUAGES: { code: Language; name: string; flag: string }[] = [
+  { code: "en", name: "English", flag: "🇬🇧" },
+  { code: "tw", name: "Twi", flag: "🇬🇭" },
+  { code: "ga", name: "Ga", flag: "🇬🇭" },
+  { code: "ee", name: "Ewe", flag: "🇬🇭" },
+  { code: "ha", name: "Hausa", flag: "🇬🇭" },
+];
+
+const INITIAL_MESSAGES: Record<Language, string> = {
+  en: "Hello! I'm Kwasi, your AI health assistant. I can help you find healthcare facilities, understand health conditions, navigate the Apomuden platform, or answer general health questions. How can I assist you today?",
+  tw: "Akwaaba! Me din de Kwasi, wo AI apɔmuden boafo. Metumi aboa wo ahu ayaresabea, ate yareɛ ho nsɛm ase, kyerɛ wo Apomuden kwan, anaasɛ bua apɔmuden nsɛmmisa. Dɛn na metumi ayɛ ama wo ɛnnɛ?",
+  ga: "Ojekoo! Mi ŋmɛi lɛ Kwasi, bo AI duŋ botsɛ. Miitɛŋ bɔ bo kɛ bo hu duŋ shishi, te hewale shi ase, kyerɛ bo Apomuden ŋmɛi, kɛ bua duŋ biabia. Mɛni lɛ miitɛŋ yɛ na bo enyɔ?",
+  ee: "Woezɔ! Ŋkɔnye nye Kwasi, wò AI lãmesẽ kpɔɖeŋutɔ. Mate ŋu akpe ɖe ŋuwò be nàdi atikewɔƒewo, àse dɔlele gɔmewo, àzɔ Apomuden dzi, alo màɖo lãmesẽ biabia siwo nèbia ŋu. Aleke mate ŋu akpe ɖe ŋuwò egbe?",
+  ha: "Sannu! Sunana Kwasi, mataimakin lafiya na AI. Zan iya taimaka maka wajen nemo asibitoci, fahimtar cututtuka, kewayawa Apomuden, ko amsa tambayoyin lafiya. Yaya zan taimaka maka yau?",
 };
 
-const QUICK_ACTIONS = [
-  { label: "Find nearby hospitals", query: "Find hospitals near me" },
-  { label: "Emergency services", query: "How do I request emergency services?" },
-  { label: "NHIS coverage", query: "What is NHIS and how does it work?" },
-  { label: "Book appointment", query: "How can I book an appointment?" },
-];
+const QUICK_ACTIONS: Record<Language, { label: string; query: string }[]> = {
+  en: [
+    { label: "Find nearby hospitals", query: "Find hospitals near me" },
+    { label: "Emergency services", query: "How do I request emergency services?" },
+    { label: "NHIS coverage", query: "What is NHIS and how does it work?" },
+    { label: "Book appointment", query: "How can I book an appointment?" },
+  ],
+  tw: [
+    { label: "Hu ayaresabea bɛn me", query: "Hu ayaresabea bɛn me" },
+    { label: "Ntɛm mmoa", query: "Meyɛ dɛn na menya ntɛm mmoa?" },
+    { label: "NHIS ho nsɛm", query: "Dɛn ne NHIS na ɛyɛ adwuma sɛn?" },
+    { label: "Hyɛ bere", query: "Meyɛ dɛn na mehyɛ bere?" },
+  ],
+  ga: [
+    { label: "Hu duŋ shishi", query: "Hu duŋ shishi ni bɔ" },
+    { label: "Gbɛkɛ bɔ", query: "Oyɛ dɛŋ lɛ minya gbɛkɛ bɔ?" },
+    { label: "NHIS shi", query: "Mɛni lɛ NHIS kɛ oyɛ dɛŋ?" },
+    { label: "Hyɛ bere", query: "Oyɛ dɛŋ lɛ mihyɛ bere?" },
+  ],
+  ee: [
+    { label: "Di atikewɔƒe", query: "Di atikewɔƒe siwo le ɖokuiwo gbɔ" },
+    { label: "Kpekpe kpɔɖeŋu", query: "Aleke mate ŋu akpɔ kpekpe kpɔɖeŋu?" },
+    { label: "NHIS nyawo", query: "Nuka nye NHIS eye wòwɔa dɔ aleke?" },
+    { label: "Ŋlɔ ŋkeke", query: "Aleke mate ŋu aŋlɔ ŋkeke?" },
+  ],
+  ha: [
+    { label: "Nemo asibiti", query: "Nemo asibiti kusa da ni" },
+    { label: "Sabis na gaggawa", query: "Yaya zan nemi sabis na gaggawa?" },
+    { label: "Bayani game da NHIS", query: "Menene NHIS kuma yaya yake aiki?" },
+    { label: "Yi alƙawari", query: "Yaya zan yi alƙawari?" },
+  ],
+};
 
 export default function KwasiChatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([INITIAL_MESSAGE]);
+  const [language, setLanguage] = useState<Language>("en");
+  const [showLanguageMenu, setShowLanguageMenu] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([{
+    id: "welcome",
+    role: "assistant",
+    content: INITIAL_MESSAGES.en,
+    timestamp: new Date(),
+  }]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const changeLanguage = (lang: Language) => {
+    setLanguage(lang);
+    setShowLanguageMenu(false);
+    setMessages([{
+      id: "welcome-" + lang,
+      role: "assistant",
+      content: INITIAL_MESSAGES[lang],
+      timestamp: new Date(),
+    }]);
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -70,6 +125,7 @@ export default function KwasiChatbot() {
         body: JSON.stringify({
           message: content,
           history: messages.slice(-10),
+          language: language,
         }),
       });
 
@@ -159,6 +215,33 @@ export default function KwasiChatbot() {
                   </div>
                 </div>
                 <div className="flex items-center gap-1">
+                  {/* Language Selector */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowLanguageMenu(!showLanguageMenu)}
+                      className="p-2 hover:bg-white/20 rounded-full transition-colors flex items-center gap-1"
+                      title="Change language"
+                    >
+                      <Globe className="h-4 w-4" />
+                      <span className="text-xs">{LANGUAGES.find(l => l.code === language)?.flag}</span>
+                    </button>
+                    {showLanguageMenu && (
+                      <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg py-1 min-w-[120px] z-10">
+                        {LANGUAGES.map((lang) => (
+                          <button
+                            key={lang.code}
+                            onClick={() => changeLanguage(lang.code)}
+                            className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2 ${
+                              language === lang.code ? "bg-emerald-50 text-emerald-700" : "text-gray-700"
+                            }`}
+                          >
+                            <span>{lang.flag}</span>
+                            <span>{lang.name}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                   <button
                     onClick={() => setIsMinimized(!isMinimized)}
                     className="p-2 hover:bg-white/20 rounded-full transition-colors"
@@ -246,7 +329,7 @@ export default function KwasiChatbot() {
                   <div className="px-4 py-2 border-t bg-white">
                     <p className="text-xs text-gray-500 mb-2">Quick actions:</p>
                     <div className="flex flex-wrap gap-2">
-                      {QUICK_ACTIONS.map((action) => (
+                      {QUICK_ACTIONS[language].map((action) => (
                         <button
                           key={action.label}
                           onClick={() => handleQuickAction(action.query)}
