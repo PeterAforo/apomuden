@@ -459,6 +459,8 @@ export async function POST() {
           name: facility.name,
           slug: facility.slug,
           type: facility.type as FacilityType,
+          licenseNumber: `GHS-${facility.type.substring(0, 3)}-${Date.now()}-${Math.random().toString(36).substring(7)}`,
+          licenseDocumentUrl: "/documents/license-placeholder.pdf",
           phone: facility.phone,
           email: facility.email,
           address: facility.address,
