@@ -49,8 +49,7 @@ export async function GET(request: NextRequest) {
           district: true,
         },
         orderBy: [
-          { tier: "asc" },
-          { averageRating: "desc" },
+          { name: "asc" },
         ],
         skip: (page - 1) * pageSize,
         take: pageSize,
