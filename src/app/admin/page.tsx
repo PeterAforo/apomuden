@@ -2,6 +2,8 @@ import { db } from "@/lib/db";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+export const dynamic = "force-dynamic";
+
 interface AdminFacility {
   id: string;
   name: string;
