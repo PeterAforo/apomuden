@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import { MapPin, Upload, X, Loader2, Camera } from "lucide-react";
 
 const FACILITY_TYPES = [
   { value: "HOSPITAL", label: "Hospital" },
@@ -46,6 +47,8 @@ interface FormData {
   address: string;
   region: string;
   district: string;
+  latitude: number | null;
+  longitude: number | null;
   phone: string;
   email: string;
   website: string;
@@ -57,12 +60,17 @@ interface FormData {
   adminName: string;
   adminPhone: string;
   adminEmail: string;
+  images: string[];
 }
 
 export default function RegisterFacilityPage() {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
+  const [locationError, setLocationError] = useState("");
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState<FormData>({
     name: "",
     type: "",
@@ -70,6 +78,8 @@ export default function RegisterFacilityPage() {
     address: "",
     region: "",
     district: "",
+    latitude: null,
+    longitude: null,
     phone: "",
     email: "",
     website: "",
@@ -81,10 +91,93 @@ export default function RegisterFacilityPage() {
     adminName: "",
     adminPhone: "",
     adminEmail: "",
+    images: [],
   });
 
-  const updateForm = (field: keyof FormData, value: string | boolean) => {
+  const updateForm = (field: keyof FormData, value: string | boolean | number | null | string[]) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const getCurrentLocation = () => {
+    setIsGettingLocation(true);
+    setLocationError("");
+
+    if (!navigator.geolocation) {
+      setLocationError("Geolocation is not supported by your browser");
+      setIsGettingLocation(false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setFormData((prev) => ({
+          ...prev,
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        }));
+        setIsGettingLocation(false);
+      },
+      (error) => {
+        let message = "Unable to get location";
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            message = "Location permission denied. Please enable location access.";
+            break;
+          case error.POSITION_UNAVAILABLE:
+            message = "Location information unavailable.";
+            break;
+          case error.TIMEOUT:
+            message = "Location request timed out.";
+            break;
+        }
+        setLocationError(message);
+        setIsGettingLocation(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploadingImage(true);
+
+    try {
+      const newImages: string[] = [];
+      
+      for (let i = 0; i < Math.min(files.length, 5 - formData.images.length); i++) {
+        const file = files[i];
+        
+        // Convert to base64 for demo (in production, upload to cloud storage)
+        const reader = new FileReader();
+        const base64 = await new Promise<string>((resolve) => {
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.readAsDataURL(file);
+        });
+        
+        newImages.push(base64);
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+        images: [...prev.images, ...newImages],
+      }));
+    } catch (error) {
+      console.error("Error uploading image:", error);
+    } finally {
+      setUploadingImage(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index),
+    }));
   };
 
   const handleSubmit = async () => {
@@ -237,6 +330,50 @@ export default function RegisterFacilityPage() {
                 />
               </div>
 
+              {/* Facility Images */}
+              <div>
+                <Label>Facility Images</Label>
+                <p className="text-sm text-gray-500 mb-3">
+                  Upload up to 5 images of your facility (exterior, reception, wards, etc.)
+                </p>
+                
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {formData.images.map((image, index) => (
+                    <div key={index} className="relative aspect-video rounded-lg overflow-hidden border">
+                      <img src={image} alt={`Facility ${index + 1}`} className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(index)}
+                        className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                  
+                  {formData.images.length < 5 && (
+                    <label className="aspect-video border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-emerald-500 hover:bg-emerald-50 transition-colors">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handleImageUpload}
+                        className="hidden"
+                      />
+                      {uploadingImage ? (
+                        <Loader2 className="h-8 w-8 text-gray-400 animate-spin" />
+                      ) : (
+                        <>
+                          <Camera className="h-8 w-8 text-gray-400 mb-2" />
+                          <span className="text-sm text-gray-500">Add Photo</span>
+                        </>
+                      )}
+                    </label>
+                  )}
+                </div>
+              </div>
+
               <div className="flex justify-end">
                 <Button
                   onClick={() => setStep(2)}
@@ -296,6 +433,56 @@ export default function RegisterFacilityPage() {
                     className="mt-2"
                   />
                 </div>
+              </div>
+
+              {/* GPS Location */}
+              <div>
+                <Label>GPS Location</Label>
+                <div className="mt-2 p-4 border rounded-lg bg-gray-50">
+                  {formData.latitude && formData.longitude ? (
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-green-600">
+                        <MapPin className="h-5 w-5" />
+                        <span className="font-medium">Location captured</span>
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {formData.latitude.toFixed(6)}, {formData.longitude.toFixed(6)}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center">
+                      <MapPin className="h-8 w-8 mx-auto text-gray-400 mb-2" />
+                      <p className="text-sm text-gray-500 mb-3">
+                        Get your facility's exact GPS coordinates for accurate mapping
+                      </p>
+                      <Button
+                        type="button"
+                        onClick={getCurrentLocation}
+                        disabled={isGettingLocation}
+                        variant="outline"
+                        className="gap-2"
+                      >
+                        {isGettingLocation ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Getting location...
+                          </>
+                        ) : (
+                          <>
+                            <MapPin className="h-4 w-4" />
+                            Get Current Location
+                          </>
+                        )}
+                      </Button>
+                      {locationError && (
+                        <p className="text-sm text-red-500 mt-2">{locationError}</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <p className="text-sm text-gray-500 mt-1">
+                  Stand at your facility entrance for best accuracy
+                </p>
               </div>
 
               <div>

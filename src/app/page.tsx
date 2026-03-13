@@ -65,6 +65,7 @@ interface Facility {
   totalReviews: number;
   region: { name: string };
   distance?: number;
+  imageUrl?: string;
 }
 
 interface HealthNews {
@@ -179,10 +180,10 @@ export default function HomePage() {
         if (data.success) {
           const facilities = data.data.items;
           
-          // Set featured (top-rated)
+          // Set featured (top-rated) - show 12 facilities
           const featured = [...facilities]
             .sort((a: Facility, b: Facility) => b.averageRating - a.averageRating)
-            .slice(0, 4);
+            .slice(0, 12);
           setFeaturedFacilities(featured);
 
           // Calculate distances and set nearby
@@ -604,27 +605,28 @@ export default function HomePage() {
             </Link>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {featuredFacilities.map((facility) => (
               <Link key={facility.id} href={`/facilities/${facility.slug}`}>
-                <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer overflow-hidden">
-                  <div className="h-32 bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center">
-                    <Building2 className="h-12 w-12 text-white/80" />
-                  </div>
-                  <CardContent className="p-5">
-                    <div className="flex items-center gap-1 mb-2">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Star
-                          key={star}
-                          className={`h-4 w-4 ${
-                            star <= Math.round(facility.averageRating)
-                              ? "text-yellow-400 fill-yellow-400"
-                              : "text-gray-300"
-                          }`}
-                        />
-                      ))}
-                      <span className="text-sm text-gray-500 ml-1">({facility.totalReviews})</span>
+                <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer overflow-hidden group">
+                  <div className="h-40 relative overflow-hidden">
+                    {facility.imageUrl ? (
+                      <img 
+                        src={facility.imageUrl} 
+                        alt={facility.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center">
+                        <Building2 className="h-12 w-12 text-white/80" />
+                      </div>
+                    )}
+                    <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1">
+                      <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
+                      <span className="text-xs font-medium">{facility.averageRating.toFixed(1)}</span>
                     </div>
+                  </div>
+                  <CardContent className="p-4">
                     <h3 className="font-semibold text-gray-900 line-clamp-1 mb-1">{facility.name}</h3>
                     <p className="text-sm text-gray-500 mb-2">{facility.region.name}</p>
                     <div className="flex flex-wrap gap-1">
@@ -635,6 +637,9 @@ export default function HomePage() {
                       )}
                       {facility.emergencyCapable && (
                         <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded">Emergency</span>
+                      )}
+                      {facility.nhisAccepted && (
+                        <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">NHIS</span>
                       )}
                     </div>
                   </CardContent>

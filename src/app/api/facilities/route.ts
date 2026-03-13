@@ -58,10 +58,16 @@ export async function GET(request: NextRequest) {
       db.facility.count({ where }),
     ]);
 
+    // Add imageUrl from photos array
+    const facilitiesWithImages = facilities.map((facility: { photos?: string[] }) => ({
+      ...facility,
+      imageUrl: facility.photos && facility.photos.length > 0 ? facility.photos[0] : null,
+    }));
+
     return NextResponse.json({
       success: true,
       data: {
-        items: facilities,
+        items: facilitiesWithImages,
         total,
         page,
         pageSize,
