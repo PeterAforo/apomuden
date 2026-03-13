@@ -1,0 +1,244 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 142 76% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 142 76% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 142 76% 12%;
+
+    --primary: 122 73% 24%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 122 59% 33%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 120 10% 96%;
+    --muted-foreground: 120 5% 45%;
+
+    --accent: 0 70% 47%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 120 10% 90%;
+    --input: 120 10% 90%;
+    --ring: 122 73% 24%;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 142 50% 5%;
+    --foreground: 0 0% 98%;
+
+    --card: 142 50% 8%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 142 50% 8%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 122 73% 35%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 122 59% 25%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 142 30% 15%;
+    --muted-foreground: 120 5% 65%;
+
+    --accent: 0 70% 47%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 142 30% 18%;
+    --input: 142 30% 18%;
+    --ring: 122 73% 35%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-muted;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-muted-foreground/30 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-muted-foreground/50;
+}
+
+/* Mapbox overrides */
+.mapboxgl-popup-content {
+  @apply rounded-lg shadow-lg p-0 overflow-hidden;
+}
+
+.mapboxgl-popup-close-button {
+  @apply text-lg p-2;
+}
+
+/* Emergency pulse animation */
+.emergency-pulse {
+  animation: emergency-pulse 2s ease-in-out infinite;
+}
+
+@keyframes emergency-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(220, 38, 38, 0);
+  }
+}
+
+/* Gradient text */
+.gradient-text {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 to-teal-500;
+}
+
+/* Glass morphism effect */
+.glass {
+  @apply bg-white/80 backdrop-blur-md border border-white/20;
+}
+
+.glass-dark {
+  @apply bg-black/20 backdrop-blur-md border border-white/10;
+}
+
+/* Card hover effects */
+.card-hover {
+  @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
+}
+
+/* Smooth image zoom */
+.img-zoom {
+  @apply transition-transform duration-500 ease-out;
+}
+
+.img-zoom:hover {
+  @apply scale-105;
+}
+
+/* Gradient backgrounds */
+.gradient-primary {
+  @apply bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-600;
+}
+
+.gradient-hero {
+  @apply bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800;
+}
+
+/* Animated underline */
+.animated-underline {
+  @apply relative;
+}
+
+.animated-underline::after {
+  content: '';
+  @apply absolute bottom-0 left-0 w-0 h-0.5 bg-emerald-500 transition-all duration-300;
+}
+
+.animated-underline:hover::after {
+  @apply w-full;
+}
+
+/* Skeleton loading */
+.skeleton {
+  @apply animate-pulse bg-gray-200 rounded;
+}
+
+/* Badge styles */
+.badge-success {
+  @apply bg-emerald-100 text-emerald-700 border border-emerald-200;
+}
+
+.badge-warning {
+  @apply bg-amber-100 text-amber-700 border border-amber-200;
+}
+
+.badge-danger {
+  @apply bg-red-100 text-red-700 border border-red-200;
+}
+
+.badge-info {
+  @apply bg-blue-100 text-blue-700 border border-blue-200;
+}
+
+/* Focus ring */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2;
+}
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Section divider */
+.section-divider {
+  @apply relative;
+}
+
+.section-divider::before {
+  content: '';
+  @apply absolute top-0 left-1/2 -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full;
+}
+
+/* Floating animation */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Shine effect */
+.shine {
+  @apply relative overflow-hidden;
+}
+
+.shine::before {
+  content: '';
+  @apply absolute top-0 -left-full w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent;
+  animation: shine 3s ease-in-out infinite;
+}
+
+@keyframes shine {
+  0% {
+    left: -100%;
+  }
+  50%, 100% {
+    left: 100%;
+  }
+}

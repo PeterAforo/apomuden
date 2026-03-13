@@ -1,0 +1,775 @@
+{
+  "project": {
+    "name": "Apomuden Health Portal",
+    "tagline": "Ghana's National Digital Health Platform",
+    "description": "A comprehensive digital health platform for the Ghana Ministry of Health that enables citizens to discover healthcare facilities, compare services and pricing, request emergency services, and receive health alerts — while equipping the Ministry with real-time disease surveillance and outbreak detection capabilities.",
+    "version": "1.0.0",
+    "owner": "Ghana Ministry of Health",
+    "branding": {
+      "primary_color": "#1B5E20",
+      "secondary_color": "#2E7D32",
+      "accent_color": "#C62828",
+      "logo_text": "Apomuden",
+      "tagline": "Your Health, Closer",
+      "languages": ["en", "tw", "ga", "ee", "ha"]
+    }
+  },
+
+  "tech_stack": {
+    "frontend": {
+      "framework": "Next.js 14+ (App Router)",
+      "language": "TypeScript",
+      "styling": "Tailwind CSS 3.4+",
+      "ui_library": "shadcn/ui + Radix Primitives",
+      "maps": "Mapbox GL JS",
+      "state_management": "Zustand + React Query (TanStack Query)",
+      "forms": "React Hook Form + Zod validation",
+      "charts": "Recharts + D3.js (heatmaps)",
+      "icons": "Lucide React",
+      "i18n": "next-intl"
+    },
+    "backend": {
+      "runtime": "Node.js 20 LTS",
+      "api": "Next.js API Routes + tRPC",
+      "database": "PostgreSQL 16 + PostGIS",
+      "orm": "Prisma 5+",
+      "auth": "NextAuth.js v5 (Auth.js)",
+      "cache": "Redis (Upstash)",
+      "queue": "BullMQ",
+      "search": "Meilisearch",
+      "file_storage": "AWS S3 / Cloudflare R2",
+      "sms_gateway": "Hubtel API (primary) + Arkesel (failover)",
+      "email": "Resend"
+    },
+    "ai_ml": {
+      "llm_provider": "Anthropic Claude API",
+      "ml_framework": "Python FastAPI microservice",
+      "ml_libraries": ["scikit-learn", "pandas", "statsmodels"],
+      "chatbot_architecture": "RAG (Retrieval-Augmented Generation)",
+      "vector_store": "Pinecone or pgvector"
+    },
+    "devops": {
+      "hosting_frontend": "Vercel",
+      "hosting_backend": "AWS (Cape Town region) or Hetzner",
+      "ci_cd": "GitHub Actions",
+      "monitoring": "Sentry (errors) + PostHog (analytics)",
+      "containerization": "Docker + Docker Compose",
+      "infrastructure_as_code": "Terraform"
+    }
+  },
+
+  "database_schema": {
+    "models": [
+      {
+        "name": "User",
+        "description": "All platform users (citizens, facility staff, ministry officials)",
+        "fields": [
+          { "name": "id", "type": "UUID", "primary": true },
+          { "name": "email", "type": "String", "unique": true, "nullable": true },
+          { "name": "phone", "type": "String", "unique": true },
+          { "name": "name", "type": "String" },
+          { "name": "role", "type": "Enum", "values": ["GUEST", "CITIZEN", "FACILITY_ADMIN", "FACILITY_STAFF", "FACILITY_VIEWER", "DISTRICT_OFFICER", "REGIONAL_DIRECTOR", "MINISTRY_ADMIN", "ANALYST", "SUPER_ADMIN"] },
+          { "name": "ghana_card_id", "type": "String", "nullable": true, "unique": true },
+          { "name": "nhis_number", "type": "String", "nullable": true },
+          { "name": "date_of_birth", "type": "Date", "nullable": true },
+          { "name": "gender", "type": "Enum", "values": ["MALE", "FEMALE", "OTHER"], "nullable": true },
+          { "name": "blood_type", "type": "String", "nullable": true },
+          { "name": "region_id", "type": "UUID", "relation": "Region", "nullable": true },
+          { "name": "district_id", "type": "UUID", "relation": "District", "nullable": true },
+          { "name": "latitude", "type": "Float", "nullable": true },
+          { "name": "longitude", "type": "Float", "nullable": true },
+          { "name": "avatar_url", "type": "String", "nullable": true },
+          { "name": "is_verified", "type": "Boolean", "default": false },
+          { "name": "two_factor_enabled", "type": "Boolean", "default": false },
+          { "name": "notification_preferences", "type": "JSON", "default": {} },
+          { "name": "created_at", "type": "DateTime" },
+          { "name": "updated_at", "type": "DateTime" }
+        ]
+      },
+      {
+        "name": "EmergencyContact",
+        "description": "Citizen emergency contacts",
+        "fields": [
+          { "name": "id", "type": "UUID", "primary": true },
+          { "name": "user_id", "type": "UUID", "relation": "User" },
+          { "name": "name", "type": "String" },
+          { "name": "phone", "type": "String" },
+          { "name": "relationship", "type": "String" }
+        ]
+      },
+      {
+        "name": "Region",
+        "description": "Ghana's 16 administrative regions",
+        "fields": [
+          { "name": "id", "type": "UUID", "primary": true },
+          { "name": "name", "type": "String" },
+          { "name": "code", "type": "String", "unique": true },
+          { "name": "boundary_geojson", "type": "JSON", "nullable": true }
+        ]
+      },
+      {
+        "name": "District",
+        "description": "Districts within regions",
+        "fields": [
+          { "name": "id", "type": "UUID", "primary": true },
+          { "name": "region_id", "type": "UUID", "relation": "Region" },
+          { "name": "name", "type": "String" },
+          { "name": "constituency", "type": "String", "nullable": true },
+          { "name": "boundary_geojson", "type": "JSON", "nullable": true }
+        ]
+      },
+      {
+        "name": "Facility",
+        "description": "Health institutions and facilities",
+        "fields": [
+          { "name": "id", "type": "UUID", "primary": true },
+          { "name": "name", "type": "String" },
+          { "name": "slug", "type": "String", "unique": true },
+          { "name": "type", "type": "Enum", "values": ["HOSPITAL", "CLINIC", "PHARMACY", "DIAGNOSTIC_CENTRE", "MATERNITY_HOME", "CHPS_COMPOUND", "POLYCLINIC", "HEALTH_CENTRE"] },
+          { "name": "tier", "type": "Enum", "values": ["FIVE_STAR", "FOUR_STAR", "THREE_STAR", "TWO_STAR", "ONE_STAR"], "nullable": true },
+          { "name": "license_number", "type": "String", "unique": true },
+          { "name": "license_document_url", "type": "String" },
+          { "name": "status", "type": "Enum", "values": ["PENDING", "APPROVED", "SUSPENDED", "REJECTED"], "default": "PENDING" },
+          { "name": "rejection_reason", "type": "String", "nullable": true },
+          { "name": "description", "type": "Text", "nullable": true },
+          { "name": "address", "type": "String" },
+          { "name": "latitude", "type": "Float" },
+          { "name": "longitude", "type": "Float" },
+          { "name": "location", "type": "PostGIS_Point", "description": "PostGIS geography point for geospatial queries" },
+          { "name": "region_id", "type": "UUID", "relation": "Region" },
+          { "name": "district_id", "type": "UUID", "relation": "District" },
+          { "name": "phone", "type": "String" },
+          { "name": "email", "type": "String", "nullable": true },
+          { "name": "website", "type": "String", "nullable": true },
+          { "name": "nhis_accepted", "type": "Boolean", "default": false },
+          { "name": "emergency_capable", "type": "Boolean", "default": false },
+          { "name": "ambulance_available", "type": "Boolean", "default": false },
+          { "name": "operating_hours", "type": "JSON", "description": "{ monday: { open: '08:00', close: '17:00' }, ... }" },
+          { "name": "bed_count", "type": "Int", "nullable": true },
+          { "name": "icu_beds_available", "type": "Int", "nullable": true },
+          { "name": "photos", "type": "String[]", "default": [] },
+          { "name": "average_rating", "type": "Float", "default": 0 },
+          { "name": "total_reviews", "type": "Int", "default": 0 },
+          { "name": "verified_at", "type": "DateTime", "nullable": true },
+          { "name": "verified_by", "type": "UUID", "relation": "User", "nullable": true },
+          { "name": "created_at", "type": "DateTime" },
+          { "name": "updated_at", "type": "DateTime" }
+        ]
+      },
+      {
+        "name": "FacilityStaff",
+        "description": "Maps users to facilities with roles",
+        "fields": [
+          { "name": "id", "type": "UUID", "primary": true },
+          { "name": "user_id", "type": "UUID", "relation": "User" },
+          { "name": "facility_id", "type": "UUID", "relation": "Facility" },
+          { "name": "role", "type": "Enum", "values": ["ADMIN", "STAFF", "VIEWER"] },
+          { "name": "invited_by", "type": "UUID", "relation": "User", "nullable": true },
+          { "name": "is_active", "type": "Boolean", "default": true },
+          { "name": "created_at", "type": "DateTime" }
+        ]
+      },
+      {
+        "name": "ServiceTaxonomy",
+        "description": "Standardised health service categories (GHS-aligned)",
+        "fields": [
+          { "name": "id", "type": "UUID", "primary": true },
+          { "name": "name", "type": "String" },
+          { "name": "category", "type": "String" },
+          { "name": "description", "type": "String", "nullable": true },
+          { "name": "standard_code", "type": "String", "nullable": true }
+        ]
+      },
+      {
+        "name": "Service",
+        "description": "Services offered by facilities with pricing",
+        "fields": [
+          { "name": "id", "type": "UUID", "primary": true },
+          { "name": "facility_id", "type": "UUID", "relation": "Facility" },
+          { "name": "taxonomy_id", "type": "UUID", "relation": "ServiceTaxonomy", "nullable": true },
+          { "name": "name", "type": "String" },
+          { "name": "category", "type": "String" },
+          { "name": "description", "type": "String", "nullable": true },
+          { "name": "price_ghs", "type": "Decimal" },
+          { "name": "nhis_covered", "type": "Enum", "values": ["YES", "PARTIAL", "NO"], "default": "NO" },
+          { "name": "nhis_copay_ghs", "type": "Decimal", "nullable": true },
+          { "name": "duration_minutes", "type": "Int", "nullable": true },
+          { "name": "department", "type": "String", "nullable": true },
+          { "name": "is_custom", "type": "Boolean", "default": false, "description": "True if not from standard taxonomy" },
+          { "name": "is_active", "type": "Boolean", "default": true },
+          { "name": "created_at", "type": "DateTime" },
+          { "name": "updated_at", "type": "DateTime" }
+        ]
+      },
+      {
+        "name": "ServicePriceHistory",
+        "description": "Audit trail for service price changes",
+        "fields": [
+          { "name": "id", "type": "UUID", "primary": true },
+          { "name": "service_id", "type": "UUID", "relation": "Service" },
+          { "name": "old_price_ghs", "type": "Decimal" },
+          { "name": "new_price_ghs", "type": "Decimal" },
+          { "name": "changed_by", "type": "UUID", "relation": "User" },
+          { "name": "changed_at", "type": "DateTime" }
+        ]
+      },
+      {
+        "name": "DiagnosisReport",
+        "description": "Aggregated diagnosis data from facilities for surveillance",
+        "fields": [
+          { "name": "id", "type": "UUID", "primary": true },
+          { "name": "facility_id", "type": "UUID", "relation": "Facility" },
+          { "name": "disease_code", "type": "String", "description": "ICD-10 code" },
+          { "name": "disease_name", "type": "String" },
+          { "name": "case_count", "type": "Int" },
+          { "name": "period_start", "type": "Date" },
+          { "name": "period_end", "type": "Date" },
+          { "name": "period_type", "type": "Enum", "values": ["DAILY", "WEEKLY", "MONTHLY"] },
+          { "name": "demographics", "type": "JSON", "description": "{ age_groups: { '0-4': 5, '5-14': 8 }, gender: { male: 7, female: 6 } }" },
+          { "name": "severity", "type": "JSON", "description": "{ mild: 5, moderate: 4, severe: 3, critical: 1 }" },
+          { "name": "outcomes", "type": "JSON", "description": "{ recovered: 8, admitted: 3, referred: 1, deceased: 1 }" },
+          { "name": "is_anomalous", "type": "Boolean", "default": false },
+          { "name": "submitted_by", "type": "UUID", "relation": "User" },
+          { "name": "created_at", "type": "DateTime" }
+        ]
+      },
+      {
+        "name": "Alert",
+        "description": "Health alerts and advisories from Ministry",
+        "fields": [
+          { "name": "id", "type": "UUID", "primary": true },
+          { "name": "title", "type": "String" },
+          { "name": "body", "type": "Text" },
+          { "name": "severity", "type": "Enum", "values": ["INFO", "WARNING", "CRITICAL", "EMERGENCY"] },
+          { "name": "scope", "type": "Enum", "values": ["NATIONAL", "REGIONAL", "DISTRICT", "CONSTITUENCY"] },
+          { "name": "target_region_ids", "type": "UUID[]", "nullable": true },
+          { "name": "target_district_ids", "type": "UUID[]", "nullable": true },
+          { "name": "disease_code", "type": "String", "nullable": true },
+          { "name": "precautions", "type": "Text", "nullable": true },
+          { "name": "status", "type": "Enum", "values": ["DRAFT", "PENDING_APPROVAL", "APPROVED", "SENT", "EXPIRED"], "default": "DRAFT" },
+          { "name": "channels", "type": "String[]", "default": ["push", "sms", "portal"], "description": "Delivery channels" },
+          { "name": "sms_message", "type": "String", "nullable": true, "description": "Shortened version for SMS (160 chars)" },
+          { "name": "auto_generated", "type": "Boolean", "default": false },
+          { "name": "source_report_ids", "type": "UUID[]", "nullable": true },
+          { "name": "created_by", "type": "UUID", "relation": "User" },
+          { "name": "approved_by", "type": "UUID", "relation": "User", "nullable": true },
+          { "name": "sent_at", "type": "DateTime", "nullable": true },
+          { "name": "expires_at", "type": "DateTime", "nullable": true },
+          { "name": "created_at", "type": "DateTime" }
+        ]
+      },
+      {
+        "name": "EmergencyRequest",
+        "description": "Emergency service requests from citizens",
+        "fields": [
+          { "name": "id", "type": "UUID", "primary": true },
+          { "name": "citizen_id", "type": "UUID", "relation": "User" },
+          { "name": "type", "type": "Enum", "values": ["MEDICAL", "ACCIDENT", "MATERNITY", "FIRE_BURNS", "OTHER"] },
+          { "name": "description", "type": "Text", "nullable": true },
+          { "name": "latitude", "type": "Float" },
+          { "name": "longitude", "type": "Float" },
+          { "name": "callback_phone", "type": "String" },
+          { "name": "status", "type": "Enum", "values": ["PENDING", "ACKNOWLEDGED", "DISPATCHED", "EN_ROUTE", "ARRIVED", "TRANSPORTING", "RESOLVED", "CANCELLED"], "default": "PENDING" },
+          { "name": "assigned_facility_id", "type": "UUID", "relation": "Facility", "nullable": true },
+          { "name": "assigned_ambulance_id", "type": "UUID", "relation": "Ambulance", "nullable": true },
+          { "name": "response_time_seconds", "type": "Int", "nullable": true },
+          { "name": "resolved_at", "type": "DateTime", "nullable": true },
+          { "name": "notes", "type": "Text", "nullable": true },
+          { "name": "created_at", "type": "DateTime" }
+        ]
+      },
+      {
+        "name": "Ambulance",
+        "description": "Ambulance fleet for emergency dispatch",
+        "fields": [
+          { "name": "id", "type": "UUID", "primary": true },
+          { "name": "facility_id", "type": "UUID", "relation": "Facility" },
+          { "name": "registration_number", "type": "String", "unique": true },
+          { "name": "type", "type": "Enum", "values": ["BASIC", "ADVANCED", "NEONATAL"] },
+          { "name": "status", "type": "Enum", "values": ["AVAILABLE", "ON_CALL", "OUT_OF_SERVICE"], "default": "AVAILABLE" },
+          { "name": "current_latitude", "type": "Float", "nullable": true },
+          { "name": "current_longitude", "type": "Float", "nullable": true },
+          { "name": "driver_name", "type": "String", "nullable": true },
+          { "name": "driver_phone", "type": "String", "nullable": true }
+        ]
+      },
+      {
+        "name": "Review",
+        "description": "Citizen reviews and ratings for facilities",
+        "fields": [
+          { "name": "id", "type": "UUID", "primary": true },
+          { "name": "citizen_id", "type": "UUID", "relation": "User" },
+          { "name": "facility_id", "type": "UUID", "relation": "Facility" },
+          { "name": "rating", "type": "Int", "description": "1-5 stars" },
+          { "name": "text", "type": "Text", "nullable": true },
+          { "name": "facility_response", "type": "Text", "nullable": true },
+          { "name": "facility_responded_at", "type": "DateTime", "nullable": true },
+          { "name": "status", "type": "Enum", "values": ["ACTIVE", "FLAGGED", "REMOVED"], "default": "ACTIVE" },
+          { "name": "created_at", "type": "DateTime" },
+          { "name": "updated_at", "type": "DateTime" }
+        ]
+      },
+      {
+        "name": "AuditLog",
+        "description": "System-wide audit trail",
+        "fields": [
+          { "name": "id", "type": "UUID", "primary": true },
+          { "name": "user_id", "type": "UUID", "relation": "User" },
+          { "name": "action", "type": "String", "description": "e.g., FACILITY_APPROVED, ALERT_SENT, SERVICE_PRICE_UPDATED" },
+          { "name": "entity_type", "type": "String" },
+          { "name": "entity_id", "type": "UUID" },
+          { "name": "details", "type": "JSON", "nullable": true },
+          { "name": "ip_address", "type": "String", "nullable": true },
+          { "name": "user_agent", "type": "String", "nullable": true },
+          { "name": "created_at", "type": "DateTime" }
+        ]
+      },
+      {
+        "name": "Notification",
+        "description": "User notification queue",
+        "fields": [
+          { "name": "id", "type": "UUID", "primary": true },
+          { "name": "user_id", "type": "UUID", "relation": "User" },
+          { "name": "alert_id", "type": "UUID", "relation": "Alert", "nullable": true },
+          { "name": "title", "type": "String" },
+          { "name": "body", "type": "String" },
+          { "name": "channel", "type": "Enum", "values": ["PUSH", "SMS", "EMAIL", "IN_APP"] },
+          { "name": "status", "type": "Enum", "values": ["PENDING", "SENT", "DELIVERED", "FAILED"] },
+          { "name": "sent_at", "type": "DateTime", "nullable": true },
+          { "name": "read_at", "type": "DateTime", "nullable": true },
+          { "name": "created_at", "type": "DateTime" }
+        ]
+      }
+    ]
+  },
+
+  "pages": {
+    "public": [
+      {
+        "path": "/",
+        "name": "Landing Page",
+        "description": "Hero with search bar, emergency SOS button, active alerts ticker, featured facilities, disease advisory banner for user's region",
+        "components": ["HeroSearch", "EmergencySOSButton", "AlertsTicker", "FeaturedFacilities", "RegionalAdvisoryBanner", "QuickStats", "Footer"]
+      },
+      {
+        "path": "/facilities",
+        "name": "Facility Discovery",
+        "description": "Interactive map with facility markers (colour-coded by tier), search bar, advanced filters (distance, tier, type, service, price range, NHIS, open now), toggle between map and list view",
+        "components": ["MapView", "FacilityListView", "SearchBar", "FilterPanel", "FacilityCard", "PriceComparisonModal"]
+      },
+      {
+        "path": "/facility/[slug]",
+        "name": "Facility Profile",
+        "description": "Full facility details: verified/tier badges, photos gallery, address with embedded map, operating hours with live open/closed status, service catalogue with prices and NHIS coverage, ratings and reviews, contact details, request appointment button",
+        "components": ["FacilityHeader", "PhotoGallery", "ServiceTable", "PriceFilter", "NHISBadge", "ReviewsList", "ReviewForm", "LocationMap", "ContactCard"]
+      },
+      {
+        "path": "/emergency",
+        "name": "Emergency Request",
+        "description": "Streamlined emergency flow: auto-GPS capture, emergency type selection, brief description, phone confirmation, nearest facility display, ambulance tracking (Phase 4)",
+        "components": ["EmergencyForm", "LocationCapture", "NearestFacilityCard", "AmbulanceTracker"]
+      },
+      {
+        "path": "/alerts",
+        "name": "Health Alerts",
+        "description": "Public health advisories filterable by region/district, severity badges, precaution details, historical alert archive",
+        "components": ["AlertsList", "AlertCard", "RegionFilter", "SeverityFilter", "AlertDetail"]
+      },
+      {
+        "path": "/compare",
+        "name": "Facility Comparison",
+        "description": "Side-by-side comparison of up to 3 facilities: services, prices, ratings, distance, NHIS coverage",
+        "components": ["ComparisonTable", "FacilitySelector", "PriceHighlight"]
+      },
+      {
+        "path": "/about",
+        "name": "About",
+        "description": "About Apomuden, Ministry of Health information, how it works, FAQ",
+        "components": ["AboutContent", "HowItWorks", "FAQ"]
+      },
+      {
+        "path": "/auth/login",
+        "name": "Login",
+        "description": "Phone OTP login, email login, Ghana Card login option",
+        "components": ["LoginForm", "OTPInput", "SocialAuth"]
+      },
+      {
+        "path": "/auth/register",
+        "name": "Registration",
+        "description": "Citizen registration with phone verification, profile setup, location selection, NHIS number entry",
+        "components": ["RegistrationForm", "OTPVerification", "LocationPicker", "NHISInput"]
+      },
+      {
+        "path": "/auth/facility-register",
+        "name": "Facility Registration",
+        "description": "Multi-step facility onboarding: basic info, license upload, location pin, operating hours, initial services",
+        "components": ["MultiStepForm", "LicenseUpload", "MapPinSelector", "HoursEditor", "ServiceAdder"]
+      }
+    ],
+    "citizen_dashboard": [
+      {
+        "path": "/dashboard",
+        "name": "Citizen Home",
+        "description": "Personalised dashboard: nearby active alerts, favourite facilities, recent activity, health advisory for user's district",
+        "components": ["AlertBanner", "FavouriteFacilities", "RecentActivity", "LocalAdvisory", "QuickActions"]
+      },
+      {
+        "path": "/dashboard/profile",
+        "name": "Profile Settings",
+        "description": "Manage personal info, NHIS details, emergency contacts, notification preferences, location settings",
+        "components": ["ProfileForm", "NHISSection", "EmergencyContacts", "NotificationPreferences", "LocationSettings"]
+      },
+      {
+        "path": "/dashboard/emergency-history",
+        "name": "Emergency History",
+        "description": "Past emergency requests with status timeline",
+        "components": ["EmergencyList", "StatusTimeline"]
+      },
+      {
+        "path": "/dashboard/symptom-checker",
+        "name": "AI Symptom Checker",
+        "description": "Natural language symptom input, AI analysis results, facility recommendations, first-aid guidance, disclaimer",
+        "components": ["SymptomInput", "AIAnalysis", "FacilityRecommendations", "FirstAidGuidance", "DisclaimerBanner"]
+      }
+    ],
+    "facility_dashboard": [
+      {
+        "path": "/facility-admin",
+        "name": "Facility Dashboard",
+        "description": "Overview: profile completeness, service count, recent reviews, monthly analytics, alerts relevant to facility's region",
+        "components": ["OverviewStats", "ProfileCompleteness", "RecentReviews", "MonthlyChart", "RegionalAlerts"]
+      },
+      {
+        "path": "/facility-admin/profile",
+        "name": "Manage Profile",
+        "description": "Edit facility details, upload photos, update operating hours, manage contact info",
+        "components": ["FacilityProfileForm", "PhotoUploader", "HoursEditor", "ContactForm"]
+      },
+      {
+        "path": "/facility-admin/services",
+        "name": "Service Management",
+        "description": "Add/edit/remove services, set pricing, indicate NHIS coverage, bulk import services from taxonomy",
+        "components": ["ServiceList", "ServiceForm", "TaxonomyBrowser", "BulkImport", "PriceHistory"]
+      },
+      {
+        "path": "/facility-admin/reports",
+        "name": "Diagnosis Reports",
+        "description": "Submit diagnosis data, view submission history, anomaly flags, ICD-10 code search",
+        "components": ["ReportForm", "ICD10Search", "ReportHistory", "AnomalyFlag"]
+      },
+      {
+        "path": "/facility-admin/reviews",
+        "name": "Reviews Management",
+        "description": "View citizen reviews, respond to reviews, flag inappropriate reviews",
+        "components": ["ReviewList", "ResponseForm", "FlagButton"]
+      },
+      {
+        "path": "/facility-admin/staff",
+        "name": "Staff Management",
+        "description": "Invite staff, assign roles, deactivate accounts",
+        "components": ["StaffList", "InviteForm", "RoleSelector"]
+      },
+      {
+        "path": "/facility-admin/resources",
+        "name": "Resource Tracker",
+        "description": "Update bed availability, ICU capacity, ambulance status, blood bank levels",
+        "components": ["BedTracker", "ICUTracker", "AmbulanceStatus", "ResourceForm"]
+      }
+    ],
+    "ministry_admin": [
+      {
+        "path": "/admin",
+        "name": "Ministry Dashboard",
+        "description": "National health overview: total facilities, registrations, disease heatmap, active alerts, outbreak status indicators",
+        "components": ["NationalStats", "DiseaseHeatmap", "ActiveAlerts", "OutbreakIndicators", "FacilityGrowthChart"]
+      },
+      {
+        "path": "/admin/facilities",
+        "name": "Facility Management",
+        "description": "Review pending applications, approve/reject with notes, assign tiers, suspend facilities, bulk actions",
+        "components": ["FacilityQueue", "ApplicationReview", "TierAssignment", "BulkActions", "FacilitySearch"]
+      },
+      {
+        "path": "/admin/alerts",
+        "name": "Alert Management",
+        "description": "Draft alerts, set scope (national/regional/district), select channels, preview SMS version, approval workflow, broadcast, view delivery stats",
+        "components": ["AlertComposer", "ScopeSelector", "ChannelSelector", "SMSPreview", "ApprovalWorkflow", "DeliveryStats"]
+      },
+      {
+        "path": "/admin/analytics",
+        "name": "Analytics & Intelligence",
+        "description": "Disease trend analysis, geospatial heatmaps, outbreak detection dashboard, facility performance metrics, exportable reports",
+        "components": ["TrendCharts", "GeoHeatmap", "OutbreakDetection", "FacilityMetrics", "ReportExporter", "PredictiveInsights"]
+      },
+      {
+        "path": "/admin/users",
+        "name": "User Management",
+        "description": "Manage all users, assign roles, view activity, bulk operations",
+        "components": ["UserTable", "RoleEditor", "ActivityLog", "BulkOps"]
+      },
+      {
+        "path": "/admin/audit",
+        "name": "Audit Logs",
+        "description": "Searchable audit trail with filters by user, action, entity, date range",
+        "components": ["AuditTable", "AuditFilters", "AuditDetail"]
+      }
+    ]
+  },
+
+  "api_routes": {
+    "auth": [
+      { "method": "POST", "path": "/api/auth/register", "description": "Register citizen with phone/email" },
+      { "method": "POST", "path": "/api/auth/login", "description": "Login with OTP/email/Ghana Card" },
+      { "method": "POST", "path": "/api/auth/verify-otp", "description": "Verify phone OTP" },
+      { "method": "POST", "path": "/api/auth/refresh", "description": "Refresh JWT token" },
+      { "method": "POST", "path": "/api/auth/2fa/setup", "description": "Enable 2FA for Ministry roles" },
+      { "method": "POST", "path": "/api/auth/2fa/verify", "description": "Verify 2FA code" }
+    ],
+    "facilities": [
+      { "method": "GET", "path": "/api/facilities", "description": "Search/browse facilities with geospatial filters" },
+      { "method": "GET", "path": "/api/facilities/[slug]", "description": "Get facility profile by slug" },
+      { "method": "POST", "path": "/api/facilities", "description": "Register new facility (auth: any)" },
+      { "method": "PATCH", "path": "/api/facilities/[id]", "description": "Update facility profile (auth: facility_admin)" },
+      { "method": "POST", "path": "/api/facilities/[id]/approve", "description": "Approve facility (auth: ministry)" },
+      { "method": "POST", "path": "/api/facilities/[id]/reject", "description": "Reject facility (auth: ministry)" },
+      { "method": "PATCH", "path": "/api/facilities/[id]/tier", "description": "Assign/update tier (auth: ministry)" },
+      { "method": "GET", "path": "/api/facilities/[id]/analytics", "description": "Facility analytics (auth: facility_admin)" },
+      { "method": "GET", "path": "/api/facilities/nearby", "description": "Get facilities near lat/lng with radius" },
+      { "method": "GET", "path": "/api/facilities/compare", "description": "Compare up to 3 facilities" }
+    ],
+    "services": [
+      { "method": "GET", "path": "/api/facilities/[id]/services", "description": "List services for a facility" },
+      { "method": "POST", "path": "/api/facilities/[id]/services", "description": "Add service (auth: facility_admin)" },
+      { "method": "PATCH", "path": "/api/services/[id]", "description": "Update service/pricing (auth: facility_admin)" },
+      { "method": "DELETE", "path": "/api/services/[id]", "description": "Remove service (auth: facility_admin)" },
+      { "method": "GET", "path": "/api/service-taxonomy", "description": "Get standardised service taxonomy" },
+      { "method": "GET", "path": "/api/services/search", "description": "Search services across facilities with price comparison" }
+    ],
+    "emergency": [
+      { "method": "POST", "path": "/api/emergency", "description": "Create emergency request (auth: citizen)" },
+      { "method": "GET", "path": "/api/emergency/[id]", "description": "Get emergency status" },
+      { "method": "PATCH", "path": "/api/emergency/[id]/status", "description": "Update emergency status (auth: facility/admin)" },
+      { "method": "GET", "path": "/api/emergency/[id]/track", "description": "Get ambulance live tracking" },
+      { "method": "GET", "path": "/api/ambulances/available", "description": "Get available ambulances near location" }
+    ],
+    "alerts": [
+      { "method": "GET", "path": "/api/alerts", "description": "Get public alerts (filterable by region/district)" },
+      { "method": "POST", "path": "/api/alerts", "description": "Create alert draft (auth: ministry)" },
+      { "method": "POST", "path": "/api/alerts/[id]/approve", "description": "Approve alert for broadcast (auth: ministry_admin)" },
+      { "method": "POST", "path": "/api/alerts/[id]/broadcast", "description": "Send alert to citizens (auth: ministry_admin)" },
+      { "method": "GET", "path": "/api/alerts/[id]/delivery-stats", "description": "Alert delivery statistics" },
+      { "method": "GET", "path": "/api/alerts/regional/[regionId]", "description": "Get alerts for a specific region" }
+    ],
+    "diagnosis": [
+      { "method": "POST", "path": "/api/diagnosis-reports", "description": "Submit diagnosis report (auth: facility)" },
+      { "method": "GET", "path": "/api/diagnosis-reports", "description": "Get reports (auth: facility for own, ministry for all)" },
+      { "method": "GET", "path": "/api/diagnosis/trends", "description": "Disease trends by region/time (auth: ministry)" },
+      { "method": "GET", "path": "/api/diagnosis/anomalies", "description": "Detected anomalies (auth: ministry)" },
+      { "method": "GET", "path": "/api/diagnosis/heatmap", "description": "Geospatial disease density data" }
+    ],
+    "reviews": [
+      { "method": "GET", "path": "/api/facilities/[id]/reviews", "description": "Get reviews for a facility" },
+      { "method": "POST", "path": "/api/facilities/[id]/reviews", "description": "Submit review (auth: citizen)" },
+      { "method": "POST", "path": "/api/reviews/[id]/respond", "description": "Facility response (auth: facility_admin)" },
+      { "method": "POST", "path": "/api/reviews/[id]/flag", "description": "Flag review (auth: any authenticated)" }
+    ],
+    "ai": [
+      { "method": "POST", "path": "/api/ai/symptom-check", "description": "AI symptom analysis (auth: citizen)" },
+      { "method": "POST", "path": "/api/ai/chat", "description": "Chatbot conversation (auth: any)" },
+      { "method": "GET", "path": "/api/ai/recommendations", "description": "Smart facility recommendations (auth: citizen)" },
+      { "method": "POST", "path": "/api/ai/draft-alert", "description": "AI-generated alert draft from anomaly data (auth: ministry)" }
+    ],
+    "nhis": [
+      { "method": "GET", "path": "/api/nhis/verify/[nhisNumber]", "description": "Verify NHIS active status" },
+      { "method": "GET", "path": "/api/nhis/coverage/[serviceId]", "description": "Check NHIS coverage for a service" }
+    ],
+    "admin": [
+      { "method": "GET", "path": "/api/admin/dashboard", "description": "National overview stats" },
+      { "method": "GET", "path": "/api/admin/users", "description": "User management" },
+      { "method": "PATCH", "path": "/api/admin/users/[id]/role", "description": "Update user role" },
+      { "method": "GET", "path": "/api/admin/audit-logs", "description": "Audit log search" },
+      { "method": "GET", "path": "/api/admin/reports/export", "description": "Export analytics reports (PDF/CSV)" }
+    ]
+  },
+
+  "phases": {
+    "phase_1": {
+      "name": "Foundation (MVP)",
+      "timeline": "Months 1-6",
+      "features": [
+        "Facility registration with multi-step form and license upload",
+        "Ministry verification workflow (approve/reject/request amendments)",
+        "Service catalogue with standardised taxonomy and pricing",
+        "Facility tier classification (1-5 star system)",
+        "Citizen geolocation-based facility search with map and list views",
+        "Advanced search filters (distance, tier, type, service, price range)",
+        "Individual facility profile pages with service/pricing details",
+        "Basic public alerts page",
+        "Responsive mobile-first design",
+        "SEO-optimised public pages"
+      ]
+    },
+    "phase_2": {
+      "name": "Engagement",
+      "timeline": "Months 7-10",
+      "features": [
+        "Citizen registration and authentication (phone OTP, email, Ghana Card)",
+        "Citizen profile with NHIS number, location, emergency contacts",
+        "Emergency service request system with GPS capture",
+        "NHIS insurance integration (verify status, check coverage per service)",
+        "Ratings and reviews system with facility response capability",
+        "Push notifications for health alerts and updates",
+        "Facility comparison tool (side-by-side pricing)",
+        "Favourites and saved facilities",
+        "Notification preferences management",
+        "Price discrepancy reporting by citizens"
+      ]
+    },
+    "phase_3": {
+      "name": "Intelligence",
+      "timeline": "Months 11-16",
+      "features": [
+        "Diagnosis reporting pipeline with ICD-10 code support",
+        "Statistical anomaly detection on diagnosis data streams",
+        "Automated outbreak flagging with Ministry notification",
+        "Ministry analytics dashboard with disease heatmaps",
+        "Trend analysis with time-series visualisations",
+        "Alert broadcasting system (push + SMS + portal)",
+        "SMS/USSD gateway for feature phone access",
+        "USSD menus: find facility, receive alerts, request emergency",
+        "Regional and district health officer dashboards",
+        "Exportable reports (PDF, CSV) for policy planning",
+        "Audit logging system"
+      ]
+    },
+    "phase_4": {
+      "name": "AI & Advanced",
+      "timeline": "Months 17-24",
+      "features": [
+        "AI symptom checker with natural language input",
+        "Smart facility recommendations (location + budget + insurance + condition)",
+        "Multilingual chatbot (English, Twi, Ga, Ewe, Hausa)",
+        "Predictive outbreak modelling with ML",
+        "Automated alert drafting from anomaly data",
+        "Ambulance dispatch system with real-time GPS tracking",
+        "Ambulance operator mobile PWA interface",
+        "Telemedicine consultation booking and video integration",
+        "Real-time bed/ICU/resource availability tracker",
+        "QR code facility profiles",
+        "Offline PWA with cached facility data",
+        "Voice-to-text symptom input"
+      ]
+    }
+  },
+
+  "rbac": {
+    "roles": [
+      {
+        "name": "GUEST",
+        "description": "Unauthenticated visitor",
+        "permissions": ["facilities:browse", "facilities:view", "services:view", "alerts:view_public", "facilities:search"]
+      },
+      {
+        "name": "CITIZEN",
+        "description": "Registered citizen",
+        "permissions": ["facilities:browse", "facilities:view", "facilities:favourite", "services:view", "services:compare", "alerts:view_public", "alerts:receive_personalised", "emergency:create", "emergency:view_own", "reviews:create", "reviews:flag", "nhis:verify_own", "ai:symptom_check", "ai:chat", "profile:manage_own", "notifications:manage_own"]
+      },
+      {
+        "name": "FACILITY_ADMIN",
+        "description": "Manages a specific facility",
+        "permissions": ["facility:manage_profile", "facility:manage_services", "facility:manage_staff", "facility:view_analytics", "facility:respond_reviews", "diagnosis:submit", "diagnosis:view_own", "resources:update", "ambulance:manage"]
+      },
+      {
+        "name": "FACILITY_STAFF",
+        "description": "Staff member at a facility",
+        "permissions": ["facility:view_profile", "diagnosis:submit", "resources:update"]
+      },
+      {
+        "name": "FACILITY_VIEWER",
+        "description": "Read-only facility dashboard access",
+        "permissions": ["facility:view_profile", "facility:view_analytics"]
+      },
+      {
+        "name": "DISTRICT_OFFICER",
+        "description": "District Health Officer",
+        "permissions": ["facilities:view_district", "facilities:verify_district", "alerts:draft_district", "diagnosis:view_district", "analytics:view_district"]
+      },
+      {
+        "name": "REGIONAL_DIRECTOR",
+        "description": "Regional Health Director",
+        "permissions": ["facilities:manage_region", "facilities:verify_region", "facilities:assign_tier_region", "alerts:manage_region", "diagnosis:view_region", "analytics:view_region", "users:manage_region"]
+      },
+      {
+        "name": "MINISTRY_ADMIN",
+        "description": "Ministry of Health administrator",
+        "permissions": ["facilities:manage_all", "facilities:assign_tier", "alerts:manage_all", "alerts:broadcast", "diagnosis:view_all", "analytics:view_all", "users:manage_all", "ai:draft_alert"]
+      },
+      {
+        "name": "ANALYST",
+        "description": "Read-only analytics access",
+        "permissions": ["analytics:view_all", "diagnosis:view_all", "reports:export"]
+      },
+      {
+        "name": "SUPER_ADMIN",
+        "description": "Full system access",
+        "permissions": ["*"]
+      }
+    ]
+  },
+
+  "seed_data": {
+    "regions": [
+      "Greater Accra", "Ashanti", "Western", "Central", "Eastern",
+      "Volta", "Northern", "Upper East", "Upper West", "Bono",
+      "Bono East", "Ahafo", "Western North", "Oti", "Savannah", "North East"
+    ],
+    "facility_types": [
+      "Hospital", "Clinic", "Pharmacy", "Diagnostic Centre",
+      "Maternity Home", "CHPS Compound", "Polyclinic", "Health Centre"
+    ],
+    "service_categories": [
+      "General Consultation", "Emergency Care", "Surgery", "Maternity & Obstetrics",
+      "Paediatrics", "Dental Care", "Eye Care", "Mental Health",
+      "Laboratory & Diagnostics", "Imaging & Radiology", "Pharmacy",
+      "Physiotherapy", "Dermatology", "ENT", "Cardiology",
+      "Orthopaedics", "Immunization", "Family Planning", "HIV/AIDS Services",
+      "Tuberculosis Services", "Nutrition Services", "Health Education"
+    ],
+    "common_diseases_ghana": [
+      "Malaria", "Upper Respiratory Tract Infection", "Diarrhoeal diseases",
+      "Skin diseases", "Hypertension", "Diabetes", "Typhoid fever",
+      "Urinary Tract Infection", "Anaemia", "Rheumatism", "Pneumonia",
+      "HIV/AIDS", "Tuberculosis", "Cholera", "Meningitis",
+      "Guinea Worm Disease", "Bilharzia", "Hepatitis B"
+    ]
+  },
+
+  "environment_variables": {
+    "required": [
+      "DATABASE_URL",
+      "NEXTAUTH_SECRET",
+      "NEXTAUTH_URL",
+      "MAPBOX_ACCESS_TOKEN",
+      "REDIS_URL",
+      "S3_BUCKET_NAME",
+      "S3_ACCESS_KEY",
+      "S3_SECRET_KEY",
+      "HUBTEL_API_KEY",
+      "HUBTEL_API_SECRET",
+      "HUBTEL_SENDER_ID",
+      "ANTHROPIC_API_KEY",
+      "MEILISEARCH_HOST",
+      "MEILISEARCH_API_KEY",
+      "NHIA_API_BASE_URL",
+      "NHIA_API_KEY",
+      "SENTRY_DSN",
+      "POSTHOG_KEY"
+    ],
+    "optional": [
+      "ARKESEL_API_KEY",
+      "GOOGLE_MAPS_API_KEY",
+      "RESEND_API_KEY",
+      "PINECONE_API_KEY"
+    ]
+  }
+}

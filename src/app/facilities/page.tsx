@@ -1,0 +1,304 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import { MapPin, Search } from "lucide-react";
+import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
+
+interface Facility {
+  id: string;
+  name: string;
+  slug: string;
+  type: string;
+  tier: string | null;
+  address: string;
+  latitude: number;
+  longitude: number;
+  phone: string;
+  nhisAccepted: boolean;
+  emergencyCapable: boolean;
+  ambulanceAvailable: boolean;
+  bedCount: number | null;
+  averageRating: number;
+  totalReviews: number;
+  description: string | null;
+  region: { name: string; code: string };
+  district: { name: string };
+}
+
+const FACILITY_TYPES = [
+  { value: "", label: "All Types" },
+  { value: "HOSPITAL", label: "Hospital" },
+  { value: "CLINIC", label: "Clinic" },
+  { value: "PHARMACY", label: "Pharmacy" },
+  { value: "DIAGNOSTIC_CENTRE", label: "Diagnostic Centre" },
+  { value: "POLYCLINIC", label: "Polyclinic" },
+  { value: "HEALTH_CENTRE", label: "Health Centre" },
+];
+
+const REGIONS = [
+  { value: "", label: "All Regions" },
+  { value: "GA", label: "Greater Accra" },
+  { value: "AS", label: "Ashanti" },
+  { value: "WR", label: "Western" },
+  { value: "CR", label: "Central" },
+  { value: "ER", label: "Eastern" },
+  { value: "VR", label: "Volta" },
+  { value: "NR", label: "Northern" },
+  { value: "UE", label: "Upper East" },
+  { value: "UW", label: "Upper West" },
+  { value: "BO", label: "Bono" },
+  { value: "BE", label: "Bono East" },
+];
+
+function getTierStars(tier: string | null): number {
+  if (!tier) return 0;
+  const tierMap: Record<string, number> = {
+    FIVE_STAR: 5,
+    FOUR_STAR: 4,
+    THREE_STAR: 3,
+    TWO_STAR: 2,
+    ONE_STAR: 1,
+  };
+  return tierMap[tier] || 0;
+}
+
+function StarRating({ rating }: { rating: number }) {
+  return (
+    <div className="flex items-center gap-1">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <svg
+          key={star}
+          className={`w-4 h-4 ${star <= rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}`}
+          viewBox="0 0 20 20"
+        >
+          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+        </svg>
+      ))}
+    </div>
+  );
+}
+
+export default function FacilitiesPage() {
+  const [facilities, setFacilities] = useState<Facility[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedType, setSelectedType] = useState("");
+  const [selectedRegion, setSelectedRegion] = useState("");
+  const [nhisOnly, setNhisOnly] = useState(false);
+  const [emergencyOnly, setEmergencyOnly] = useState(false);
+  const [total, setTotal] = useState(0);
+
+  useEffect(() => {
+    fetchFacilities();
+  }, [selectedType, selectedRegion, nhisOnly, emergencyOnly]);
+
+  const fetchFacilities = async (query = searchQuery) => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (query) params.set("query", query);
+      if (selectedType) params.set("type", selectedType);
+      if (selectedRegion) params.set("region", selectedRegion);
+      if (nhisOnly) params.set("nhis", "true");
+      if (emergencyOnly) params.set("emergency", "true");
+
+      const res = await fetch(`/api/facilities?${params.toString()}`);
+      const data = await res.json();
+
+      if (data.success) {
+        setFacilities(data.data.items);
+        setTotal(data.data.total);
+      }
+    } catch (error) {
+      console.error("Error fetching facilities:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    fetchFacilities();
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <Navbar />
+      
+      {/* Search Section */}
+      <section className="bg-emerald-600 py-8">
+        <div className="container mx-auto px-4">
+          <h1 className="text-2xl md:text-3xl font-bold text-white mb-6">
+            Find Healthcare Facilities in Ghana
+          </h1>
+          <form onSubmit={handleSearch} className="flex gap-2">
+            <Input
+              type="text"
+              placeholder="Search by name, location, or service..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="flex-1 bg-white"
+            />
+            <Button type="submit" className="bg-amber-500 hover:bg-amber-600 text-white">
+              Search
+            </Button>
+          </form>
+        </div>
+      </section>
+
+      {/* Filters */}
+      <section className="bg-white border-b py-4">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-wrap items-center gap-4">
+            <select
+              value={selectedType}
+              onChange={(e) => setSelectedType(e.target.value)}
+              className="px-3 py-2 border rounded-lg text-sm"
+            >
+              {FACILITY_TYPES.map((type) => (
+                <option key={type.value} value={type.value}>
+                  {type.label}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={selectedRegion}
+              onChange={(e) => setSelectedRegion(e.target.value)}
+              className="px-3 py-2 border rounded-lg text-sm"
+            >
+              {REGIONS.map((region) => (
+                <option key={region.value} value={region.value}>
+                  {region.label}
+                </option>
+              ))}
+            </select>
+
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={nhisOnly}
+                onChange={(e) => setNhisOnly(e.target.checked)}
+                className="rounded"
+              />
+              NHIS Accepted
+            </label>
+
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={emergencyOnly}
+                onChange={(e) => setEmergencyOnly(e.target.checked)}
+                className="rounded"
+              />
+              Emergency Services
+            </label>
+
+            <span className="ml-auto text-sm text-gray-600">
+              {total} facilities found
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* Results */}
+      <main className="container mx-auto px-4 py-8">
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+          </div>
+        ) : facilities.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-600">No facilities found matching your criteria.</p>
+          </div>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {facilities.map((facility) => (
+              <Card key={facility.id} className="group overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-0 shadow-md">
+                {/* Card Header with gradient */}
+                <div className="h-2 bg-gradient-to-r from-emerald-500 to-teal-500"></div>
+                <CardContent className="p-5">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-lg text-gray-900 line-clamp-1 group-hover:text-emerald-600 transition-colors">
+                        {facility.name}
+                      </h3>
+                      <p className="text-sm text-emerald-600 font-medium">
+                        {facility.type.replace("_", " ")}
+                      </p>
+                    </div>
+                    {facility.tier && (
+                      <div className="flex items-center gap-1 bg-gradient-to-r from-amber-100 to-yellow-100 px-3 py-1.5 rounded-full text-xs shadow-sm">
+                        <span className="text-amber-600 font-bold">
+                          {getTierStars(facility.tier)}★
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  <p className="text-sm text-gray-500 mb-4 line-clamp-2 flex items-start gap-1.5">
+                    <MapPin className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                    {facility.address}
+                  </p>
+
+                  <div className="flex items-center gap-2 mb-4 bg-gray-50 rounded-lg p-2">
+                    <StarRating rating={Math.round(facility.averageRating)} />
+                    <span className="text-sm text-gray-600 font-medium">
+                      {facility.averageRating.toFixed(1)}
+                    </span>
+                    <span className="text-sm text-gray-400">
+                      ({facility.totalReviews} reviews)
+                    </span>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {facility.nhisAccepted && (
+                      <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 text-xs rounded-full font-medium border border-emerald-200">
+                        ✓ NHIS
+                      </span>
+                    )}
+                    {facility.emergencyCapable && (
+                      <span className="px-2.5 py-1 bg-red-50 text-red-700 text-xs rounded-full font-medium border border-red-200">
+                        🚨 Emergency
+                      </span>
+                    )}
+                    {facility.ambulanceAvailable && (
+                      <span className="px-2.5 py-1 bg-blue-50 text-blue-700 text-xs rounded-full font-medium border border-blue-200">
+                        🚑 Ambulance
+                      </span>
+                    )}
+                    {facility.bedCount && (
+                      <span className="px-2.5 py-1 bg-gray-50 text-gray-700 text-xs rounded-full font-medium border border-gray-200">
+                        🛏️ {facility.bedCount} beds
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                    <span className="text-sm text-gray-500 flex items-center gap-1">
+                      <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
+                      {facility.region.name}
+                    </span>
+                    <Link href={`/facilities/${facility.slug}`}>
+                      <Button size="sm" variant="outline">
+                        View Details
+                      </Button>
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </main>
+      
+      <Footer />
+    </div>
+  );
+}

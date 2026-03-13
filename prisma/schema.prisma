@@ -1,0 +1,566 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [postgis]
+}
+
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+enum UserRole {
+  GUEST
+  CITIZEN
+  FACILITY_ADMIN
+  FACILITY_STAFF
+  FACILITY_VIEWER
+  DISTRICT_OFFICER
+  REGIONAL_DIRECTOR
+  MINISTRY_ADMIN
+  ANALYST
+  SUPER_ADMIN
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum FacilityType {
+  HOSPITAL
+  CLINIC
+  PHARMACY
+  DIAGNOSTIC_CENTRE
+  MATERNITY_HOME
+  CHPS_COMPOUND
+  POLYCLINIC
+  HEALTH_CENTRE
+}
+
+enum FacilityTier {
+  FIVE_STAR
+  FOUR_STAR
+  THREE_STAR
+  TWO_STAR
+  ONE_STAR
+}
+
+enum FacilityStatus {
+  PENDING
+  APPROVED
+  SUSPENDED
+  REJECTED
+}
+
+enum FacilityStaffRole {
+  ADMIN
+  STAFF
+  VIEWER
+}
+
+enum NHISCoverage {
+  YES
+  PARTIAL
+  NO
+}
+
+enum DiagnosisPeriodType {
+  DAILY
+  WEEKLY
+  MONTHLY
+}
+
+enum AlertSeverity {
+  INFO
+  WARNING
+  CRITICAL
+  EMERGENCY
+}
+
+enum AlertScope {
+  NATIONAL
+  REGIONAL
+  DISTRICT
+  CONSTITUENCY
+}
+
+enum AlertStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  SENT
+  EXPIRED
+}
+
+enum EmergencyType {
+  MEDICAL
+  ACCIDENT
+  MATERNITY
+  FIRE_BURNS
+  OTHER
+}
+
+enum EmergencyStatus {
+  PENDING
+  ACKNOWLEDGED
+  DISPATCHED
+  EN_ROUTE
+  ARRIVED
+  TRANSPORTING
+  RESOLVED
+  CANCELLED
+}
+
+enum AmbulanceType {
+  BASIC
+  ADVANCED
+  NEONATAL
+}
+
+enum AmbulanceStatus {
+  AVAILABLE
+  ON_CALL
+  OUT_OF_SERVICE
+}
+
+enum ReviewStatus {
+  ACTIVE
+  FLAGGED
+  REMOVED
+}
+
+enum NotificationChannel {
+  PUSH
+  SMS
+  EMAIL
+  IN_APP
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  DELIVERED
+  FAILED
+}
+
+// ============================================================================
+// MODELS
+// ============================================================================
+
+model User {
+  id                      String    @id @default(uuid()) @db.Uuid
+  email                   String?   @unique
+  phone                   String    @unique
+  name                    String
+  role                    UserRole  @default(CITIZEN)
+  ghanaCardId             String?   @unique @map("ghana_card_id")
+  nhisNumber              String?   @map("nhis_number")
+  dateOfBirth             DateTime? @map("date_of_birth") @db.Date
+  gender                  Gender?
+  bloodType               String?   @map("blood_type")
+  regionId                String?   @map("region_id") @db.Uuid
+  districtId              String?   @map("district_id") @db.Uuid
+  latitude                Float?
+  longitude               Float?
+  avatarUrl               String?   @map("avatar_url")
+  isVerified              Boolean   @default(false) @map("is_verified")
+  twoFactorEnabled        Boolean   @default(false) @map("two_factor_enabled")
+  notificationPreferences Json      @default("{}") @map("notification_preferences")
+  createdAt               DateTime  @default(now()) @map("created_at")
+  updatedAt               DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  region                Region?            @relation(fields: [regionId], references: [id])
+  district              District?          @relation(fields: [districtId], references: [id])
+  emergencyContacts     EmergencyContact[]
+  facilityStaff         FacilityStaff[]
+  verifiedFacilities    Facility[]         @relation("VerifiedBy")
+  servicePriceChanges   ServicePriceHistory[]
+  diagnosisReports      DiagnosisReport[]
+  createdAlerts         Alert[]            @relation("CreatedBy")
+  approvedAlerts        Alert[]            @relation("ApprovedBy")
+  emergencyRequests     EmergencyRequest[]
+  reviews               Review[]
+  auditLogs             AuditLog[]
+  notifications         Notification[]
+  accounts              Account[]
+  sessions              Session[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(uuid()) @db.Uuid
+  userId            String  @map("user_id") @db.Uuid
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(uuid()) @db.Uuid
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id") @db.Uuid
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+model EmergencyContact {
+  id           String @id @default(uuid()) @db.Uuid
+  userId       String @map("user_id") @db.Uuid
+  name         String
+  phone        String
+  relationship String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("emergency_contacts")
+}
+
+model Region {
+  id              String  @id @default(uuid()) @db.Uuid
+  name            String
+  code            String  @unique
+  boundaryGeojson Json?   @map("boundary_geojson")
+
+  // Relations
+  districts  District[]
+  facilities Facility[]
+  users      User[]
+
+  @@map("regions")
+}
+
+model District {
+  id              String  @id @default(uuid()) @db.Uuid
+  regionId        String  @map("region_id") @db.Uuid
+  name            String
+  constituency    String?
+  boundaryGeojson Json?   @map("boundary_geojson")
+
+  // Relations
+  region     Region     @relation(fields: [regionId], references: [id])
+  facilities Facility[]
+  users      User[]
+
+  @@map("districts")
+}
+
+model Facility {
+  id                  String         @id @default(uuid()) @db.Uuid
+  name                String
+  slug                String         @unique
+  type                FacilityType
+  tier                FacilityTier?
+  licenseNumber       String         @unique @map("license_number")
+  licenseDocumentUrl  String         @map("license_document_url")
+  status              FacilityStatus @default(PENDING)
+  rejectionReason     String?        @map("rejection_reason")
+  description         String?        @db.Text
+  address             String
+  latitude            Float
+  longitude           Float
+  regionId            String         @map("region_id") @db.Uuid
+  districtId          String         @map("district_id") @db.Uuid
+  phone               String
+  email               String?
+  website             String?
+  nhisAccepted        Boolean        @default(false) @map("nhis_accepted")
+  emergencyCapable    Boolean        @default(false) @map("emergency_capable")
+  ambulanceAvailable  Boolean        @default(false) @map("ambulance_available")
+  operatingHours      Json?          @map("operating_hours")
+  bedCount            Int?           @map("bed_count")
+  icuBedsAvailable    Int?           @map("icu_beds_available")
+  photos              String[]       @default([])
+  averageRating       Float          @default(0) @map("average_rating")
+  totalReviews        Int            @default(0) @map("total_reviews")
+  verifiedAt          DateTime?      @map("verified_at")
+  verifiedById        String?        @map("verified_by") @db.Uuid
+  createdAt           DateTime       @default(now()) @map("created_at")
+  updatedAt           DateTime       @updatedAt @map("updated_at")
+
+  // Relations
+  region             Region             @relation(fields: [regionId], references: [id])
+  district           District           @relation(fields: [districtId], references: [id])
+  verifiedBy         User?              @relation("VerifiedBy", fields: [verifiedById], references: [id])
+  staff              FacilityStaff[]
+  services           Service[]
+  diagnosisReports   DiagnosisReport[]
+  emergencyRequests  EmergencyRequest[]
+  ambulances         Ambulance[]
+  reviews            Review[]
+
+  @@index([latitude, longitude])
+  @@index([regionId])
+  @@index([districtId])
+  @@index([type])
+  @@index([status])
+  @@map("facilities")
+}
+
+model FacilityStaff {
+  id         String            @id @default(uuid()) @db.Uuid
+  userId     String            @map("user_id") @db.Uuid
+  facilityId String            @map("facility_id") @db.Uuid
+  role       FacilityStaffRole
+  invitedById String?          @map("invited_by") @db.Uuid
+  isActive   Boolean           @default(true) @map("is_active")
+  createdAt  DateTime          @default(now()) @map("created_at")
+
+  // Relations
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  facility  Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, facilityId])
+  @@map("facility_staff")
+}
+
+model ServiceTaxonomy {
+  id           String  @id @default(uuid()) @db.Uuid
+  name         String
+  category     String
+  description  String?
+  standardCode String? @map("standard_code")
+
+  // Relations
+  services Service[]
+
+  @@map("service_taxonomy")
+}
+
+model Service {
+  id              String       @id @default(uuid()) @db.Uuid
+  facilityId      String       @map("facility_id") @db.Uuid
+  taxonomyId      String?      @map("taxonomy_id") @db.Uuid
+  name            String
+  category        String
+  description     String?
+  priceGhs        Decimal      @map("price_ghs") @db.Decimal(10, 2)
+  nhisCovered     NHISCoverage @default(NO) @map("nhis_covered")
+  nhisCopayGhs    Decimal?     @map("nhis_copay_ghs") @db.Decimal(10, 2)
+  durationMinutes Int?         @map("duration_minutes")
+  department      String?
+  isCustom        Boolean      @default(false) @map("is_custom")
+  isActive        Boolean      @default(true) @map("is_active")
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
+
+  // Relations
+  facility     Facility              @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  taxonomy     ServiceTaxonomy?      @relation(fields: [taxonomyId], references: [id])
+  priceHistory ServicePriceHistory[]
+
+  @@index([facilityId])
+  @@index([category])
+  @@map("services")
+}
+
+model ServicePriceHistory {
+  id          String   @id @default(uuid()) @db.Uuid
+  serviceId   String   @map("service_id") @db.Uuid
+  oldPriceGhs Decimal  @map("old_price_ghs") @db.Decimal(10, 2)
+  newPriceGhs Decimal  @map("new_price_ghs") @db.Decimal(10, 2)
+  changedById String   @map("changed_by") @db.Uuid
+  changedAt   DateTime @default(now()) @map("changed_at")
+
+  // Relations
+  service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  changedBy User    @relation(fields: [changedById], references: [id])
+
+  @@map("service_price_history")
+}
+
+model DiagnosisReport {
+  id           String              @id @default(uuid()) @db.Uuid
+  facilityId   String              @map("facility_id") @db.Uuid
+  diseaseCode  String              @map("disease_code")
+  diseaseName  String              @map("disease_name")
+  caseCount    Int                 @map("case_count")
+  periodStart  DateTime            @map("period_start") @db.Date
+  periodEnd    DateTime            @map("period_end") @db.Date
+  periodType   DiagnosisPeriodType @map("period_type")
+  demographics Json?
+  severity     Json?
+  outcomes     Json?
+  isAnomalous  Boolean             @default(false) @map("is_anomalous")
+  submittedById String             @map("submitted_by") @db.Uuid
+  createdAt    DateTime            @default(now()) @map("created_at")
+
+  // Relations
+  facility    Facility @relation(fields: [facilityId], references: [id])
+  submittedBy User     @relation(fields: [submittedById], references: [id])
+
+  @@index([facilityId])
+  @@index([diseaseCode])
+  @@index([periodStart, periodEnd])
+  @@map("diagnosis_reports")
+}
+
+model Alert {
+  id               String        @id @default(uuid()) @db.Uuid
+  title            String
+  body             String        @db.Text
+  severity         AlertSeverity
+  scope            AlertScope
+  targetRegionIds  String[]      @map("target_region_ids") @db.Uuid
+  targetDistrictIds String[]     @map("target_district_ids") @db.Uuid
+  diseaseCode      String?       @map("disease_code")
+  precautions      String?       @db.Text
+  status           AlertStatus   @default(DRAFT)
+  channels         String[]      @default(["push", "sms", "portal"])
+  smsMessage       String?       @map("sms_message") @db.VarChar(160)
+  autoGenerated    Boolean       @default(false) @map("auto_generated")
+  sourceReportIds  String[]      @map("source_report_ids") @db.Uuid
+  createdById      String        @map("created_by") @db.Uuid
+  approvedById     String?       @map("approved_by") @db.Uuid
+  sentAt           DateTime?     @map("sent_at")
+  expiresAt        DateTime?     @map("expires_at")
+  createdAt        DateTime      @default(now()) @map("created_at")
+
+  // Relations
+  createdBy     User           @relation("CreatedBy", fields: [createdById], references: [id])
+  approvedBy    User?          @relation("ApprovedBy", fields: [approvedById], references: [id])
+  notifications Notification[]
+
+  @@index([severity])
+  @@index([status])
+  @@index([scope])
+  @@map("alerts")
+}
+
+model EmergencyRequest {
+  id                  String          @id @default(uuid()) @db.Uuid
+  citizenId           String          @map("citizen_id") @db.Uuid
+  type                EmergencyType
+  description         String?         @db.Text
+  latitude            Float
+  longitude           Float
+  callbackPhone       String          @map("callback_phone")
+  status              EmergencyStatus @default(PENDING)
+  assignedFacilityId  String?         @map("assigned_facility_id") @db.Uuid
+  assignedAmbulanceId String?         @map("assigned_ambulance_id") @db.Uuid
+  responseTimeSeconds Int?            @map("response_time_seconds")
+  resolvedAt          DateTime?       @map("resolved_at")
+  notes               String?         @db.Text
+  createdAt           DateTime        @default(now()) @map("created_at")
+
+  // Relations
+  citizen          User       @relation(fields: [citizenId], references: [id])
+  assignedFacility Facility?  @relation(fields: [assignedFacilityId], references: [id])
+  assignedAmbulance Ambulance? @relation(fields: [assignedAmbulanceId], references: [id])
+
+  @@index([citizenId])
+  @@index([status])
+  @@index([latitude, longitude])
+  @@map("emergency_requests")
+}
+
+model Ambulance {
+  id                 String          @id @default(uuid()) @db.Uuid
+  facilityId         String          @map("facility_id") @db.Uuid
+  registrationNumber String          @unique @map("registration_number")
+  type               AmbulanceType
+  status             AmbulanceStatus @default(AVAILABLE)
+  currentLatitude    Float?          @map("current_latitude")
+  currentLongitude   Float?          @map("current_longitude")
+  driverName         String?         @map("driver_name")
+  driverPhone        String?         @map("driver_phone")
+
+  // Relations
+  facility           Facility           @relation(fields: [facilityId], references: [id])
+  emergencyRequests  EmergencyRequest[]
+
+  @@map("ambulances")
+}
+
+model Review {
+  id                  String       @id @default(uuid()) @db.Uuid
+  citizenId           String       @map("citizen_id") @db.Uuid
+  facilityId          String       @map("facility_id") @db.Uuid
+  rating              Int
+  text                String?      @db.Text
+  facilityResponse    String?      @map("facility_response") @db.Text
+  facilityRespondedAt DateTime?    @map("facility_responded_at")
+  status              ReviewStatus @default(ACTIVE)
+  createdAt           DateTime     @default(now()) @map("created_at")
+  updatedAt           DateTime     @updatedAt @map("updated_at")
+
+  // Relations
+  citizen  User     @relation(fields: [citizenId], references: [id])
+  facility Facility @relation(fields: [facilityId], references: [id])
+
+  @@unique([citizenId, facilityId])
+  @@index([facilityId])
+  @@map("reviews")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  action     String
+  entityType String   @map("entity_type")
+  entityId   String   @map("entity_id") @db.Uuid
+  details    Json?
+  ipAddress  String?  @map("ip_address")
+  userAgent  String?  @map("user_agent")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model Notification {
+  id        String             @id @default(uuid()) @db.Uuid
+  userId    String             @map("user_id") @db.Uuid
+  alertId   String?            @map("alert_id") @db.Uuid
+  title     String
+  body      String
+  channel   NotificationChannel
+  status    NotificationStatus @default(PENDING)
+  sentAt    DateTime?          @map("sent_at")
+  readAt    DateTime?          @map("read_at")
+  createdAt DateTime           @default(now()) @map("created_at")
+
+  // Relations
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  alert Alert? @relation(fields: [alertId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@map("notifications")
+}
