@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import { FacilityReviews } from "@/components/reviews";
+import { FavoriteButton } from "@/components/favorites";
 
 export const dynamic = "force-dynamic";
 
@@ -104,7 +106,8 @@ export default async function FacilityDetailPage({ params }: PageProps) {
               </p>
             </div>
             
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <FavoriteButton facilityId={facility.id} />
               {facility.nhisAccepted && (
                 <span className="px-3 py-1.5 bg-white/20 backdrop-blur-sm text-white text-sm rounded-full font-medium border border-white/30">
                   ✓ NHIS Accepted
@@ -205,38 +208,8 @@ export default async function FacilityDetailPage({ params }: PageProps) {
               </Card>
             )}
 
-            {/* Reviews */}
-            {facility.reviews.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Recent Reviews</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {facility.reviews.map((review: FacilityReview) => (
-                      <div key={review.id} className="border-b pb-4 last:border-0">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="font-medium">{review.citizen.name}</span>
-                          <div className="flex items-center gap-1">
-                            {[1, 2, 3, 4, 5].map((star) => (
-                              <span
-                                key={star}
-                                className={star <= review.rating ? "text-yellow-400" : "text-gray-300"}
-                              >
-                                ★
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                        {review.text && (
-                          <p className="text-gray-600 text-sm">{review.text}</p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            {/* Reviews Section */}
+            <FacilityReviews facilityId={facility.id} facilityName={facility.name} />
           </div>
 
           {/* Sidebar */}
