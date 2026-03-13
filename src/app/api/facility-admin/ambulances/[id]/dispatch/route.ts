@@ -26,6 +26,13 @@ export async function POST(
       );
     }
 
+    if (!session.user.id) {
+      return NextResponse.json(
+        { error: "User ID not found" },
+        { status: 401 }
+      );
+    }
+
     // Update ambulance status
     await db.ambulance.update({
       where: { id: params.id },
