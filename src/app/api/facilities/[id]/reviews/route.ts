@@ -94,6 +94,13 @@ export async function POST(
       );
     }
 
+    if (!session.user.id) {
+      return NextResponse.json(
+        { error: "User ID not found" },
+        { status: 401 }
+      );
+    }
+
     // Check if user already reviewed this facility
     const existingReview = await db.review.findFirst({
       where: {
