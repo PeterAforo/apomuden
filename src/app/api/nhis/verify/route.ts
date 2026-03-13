@@ -155,8 +155,8 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      const isCovered = service.nhisCovered === "FULL" || service.nhisCovered === "PARTIAL";
-      const coveragePercent = service.nhisCovered === "FULL" ? 100 : service.nhisCovered === "PARTIAL" ? 70 : 0;
+      const isCovered = service.nhisCovered === "YES" || service.nhisCovered === "PARTIAL";
+      const coveragePercent = service.nhisCovered === "YES" ? 100 : service.nhisCovered === "PARTIAL" ? 70 : 0;
 
       return NextResponse.json({
         hasNhis: true,
