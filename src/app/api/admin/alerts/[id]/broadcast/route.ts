@@ -65,18 +65,20 @@ export async function POST(
     }
 
     // Create audit log
-    await db.auditLog.create({
-      data: {
-        userId: session.user.id,
-        action: "ALERT_BROADCAST",
-        entityType: "Alert",
-        entityId: params.id,
-        details: {
-          title: alert.title,
-          recipientCount: citizens.length,
+    if (session.user.id) {
+      await db.auditLog.create({
+        data: {
+          userId: session.user.id,
+          action: "ALERT_BROADCAST",
+          entityType: "Alert",
+          entityId: params.id,
+          details: {
+            title: alert.title,
+            recipientCount: citizens.length,
+          },
         },
-      },
-    });
+      });
+    }
 
     return NextResponse.json({
       message: "Alert broadcast successfully",
