@@ -130,7 +130,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Get recommended facility types
-    const suggestedFacilityTypes = highestUrgency === "EMERGENCY" 
+    type FacilityType = "HOSPITAL" | "CLINIC" | "PHARMACY" | "DIAGNOSTIC_CENTRE" | "MATERNITY_HOME" | "CHPS_COMPOUND" | "POLYCLINIC" | "HEALTH_CENTRE";
+    
+    const suggestedFacilityTypes: FacilityType[] = highestUrgency === "EMERGENCY" 
       ? ["HOSPITAL"] 
       : highestUrgency === "HIGH"
       ? ["HOSPITAL", "POLYCLINIC"]
