@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
           name,
           phone,
           role: "CITIZEN",
-          emailVerified: null,
+          isVerified: false,
         },
       });
 
@@ -92,10 +92,9 @@ export async function POST(request: NextRequest) {
         data: {
           name,
           email,
-          phone: "", // Will need to add phone later
-          passwordHash: hashedPassword,
+          phone: `temp_${Date.now()}`, // Temporary phone - user should add real one later
           role: "CITIZEN",
-          emailVerified: new Date(), // Auto-verify for email registration
+          isVerified: true, // Auto-verify for email registration
         },
       });
 

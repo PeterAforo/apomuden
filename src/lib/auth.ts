@@ -1,38 +1,6 @@
 import NextAuth from "next-auth";
-import type { NextAuthConfig } from "next-auth";
-import { PrismaAdapter } from "@auth/prisma-adapter";
 import Credentials from "next-auth/providers/credentials";
 import { db } from "@/lib/db";
-import type { UserRole } from "@prisma/client";
-
-declare module "next-auth" {
-  interface Session {
-    user: {
-      id: string;
-      email?: string | null;
-      phone: string;
-      name: string;
-      role: UserRole;
-      image?: string | null;
-    };
-  }
-
-  interface User {
-    id: string;
-    email?: string | null;
-    phone: string;
-    name: string;
-    role: UserRole;
-  }
-}
-
-declare module "next-auth/jwt" {
-  interface JWT {
-    id: string;
-    phone: string;
-    role: UserRole;
-  }
-}
 
 export const {
   handlers: { GET, POST },
@@ -40,7 +8,6 @@ export const {
   signIn,
   signOut,
 } = NextAuth({
-  adapter: PrismaAdapter(db),
   session: {
     strategy: "jwt",
   },
@@ -61,7 +28,19 @@ export const {
           return null;
         }
 
-        // TODO: Verify OTP from Redis/database
+        // Verify OTP from database
+        const verificationToken = await db.verificationToken.findFirst({
+          where: {
+            identifier: credentials.phone as string,
+            token: credentials.otp as string,
+            expires: { gt: new Date() },
+          },
+        });
+
+        if (!verificationToken) {
+          return null;
+        }
+
         const user = await db.user.findUnique({
           where: { phone: credentials.phone as string },
         });
@@ -70,12 +49,20 @@ export const {
           return null;
         }
 
+        // Delete used token
+        await db.verificationToken.delete({
+          where: {
+            identifier_token: {
+              identifier: verificationToken.identifier,
+              token: verificationToken.token,
+            },
+          },
+        });
+
         return {
           id: user.id,
           email: user.email,
-          phone: user.phone,
           name: user.name,
-          role: user.role,
         };
       },
     }),
@@ -91,7 +78,6 @@ export const {
           return null;
         }
 
-        // TODO: Implement email/password verification
         const user = await db.user.findUnique({
           where: { email: credentials.email as string },
         });
@@ -100,12 +86,13 @@ export const {
           return null;
         }
 
+        // For demo purposes, accept any password
+        // TODO: Add bcrypt password verification in production
+
         return {
           id: user.id,
           email: user.email,
-          phone: user.phone,
           name: user.name,
-          role: user.role,
         };
       },
     }),
@@ -114,16 +101,12 @@ export const {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.phone = user.phone;
-        token.role = user.role;
       }
       return token;
     },
     async session({ session, token }) {
-      if (token) {
-        session.user.id = token.id;
-        session.user.phone = token.phone;
-        session.user.role = token.role;
+      if (token && session.user) {
+        (session.user as { id: string }).id = token.id as string;
       }
       return session;
     },

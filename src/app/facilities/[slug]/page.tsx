@@ -10,6 +10,23 @@ interface PageProps {
   params: { slug: string };
 }
 
+interface FacilityService {
+  id: string;
+  name: string;
+  category: string | null;
+  priceGhs: { toNumber: () => number } | number;
+  nhisCovered: string;
+}
+
+interface FacilityReview {
+  id: string;
+  rating: number;
+  text: string | null;
+  citizen: {
+    name: string;
+  };
+}
+
 function getTierStars(tier: string | null): number {
   if (!tier) return 0;
   const tierMap: Record<string, number> = {
@@ -162,7 +179,7 @@ export default async function FacilityDetailPage({ params }: PageProps) {
                 </CardHeader>
                 <CardContent>
                   <div className="grid md:grid-cols-2 gap-3">
-                    {facility.services.map((service) => (
+                    {facility.services.map((service: FacilityService) => (
                       <div
                         key={service.id}
                         className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
@@ -173,7 +190,7 @@ export default async function FacilityDetailPage({ params }: PageProps) {
                         </div>
                         <div className="text-right">
                           <p className="font-semibold text-emerald-600">
-                            GH₵ {Number(service.priceGhs).toFixed(2)}
+                            GH₵ {typeof service.priceGhs === 'object' ? service.priceGhs.toNumber().toFixed(2) : Number(service.priceGhs).toFixed(2)}
                           </p>
                           {service.nhisCovered !== "NO" && (
                             <span className="text-xs text-green-600">NHIS</span>
@@ -194,7 +211,7 @@ export default async function FacilityDetailPage({ params }: PageProps) {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {facility.reviews.map((review) => (
+                    {facility.reviews.map((review: FacilityReview) => (
                       <div key={review.id} className="border-b pb-4 last:border-0">
                         <div className="flex items-center justify-between mb-2">
                           <span className="font-medium">{review.citizen.name}</span>

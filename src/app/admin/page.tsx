@@ -2,6 +2,22 @@ import { db } from "@/lib/db";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+interface AdminFacility {
+  id: string;
+  name: string;
+  type: string;
+  tier: string | null;
+  licenseNumber: string;
+  region: {
+    name: string;
+  };
+}
+
+interface FacilityTypeCount {
+  type: string;
+  _count: number;
+}
+
 async function getStats() {
   const [
     totalFacilities,
@@ -171,7 +187,7 @@ export default async function AdminDashboard() {
                 <p className="text-gray-500 text-center py-8">No pending approvals</p>
               ) : (
                 <div className="space-y-4">
-                  {pendingFacilities.map((facility) => (
+                  {pendingFacilities.map((facility: AdminFacility) => (
                     <div key={facility.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                       <div>
                         <p className="font-medium text-gray-900">{facility.name}</p>
@@ -210,7 +226,7 @@ export default async function AdminDashboard() {
                 <p className="text-gray-500 text-center py-8">No approved facilities yet</p>
               ) : (
                 <div className="space-y-4">
-                  {recentFacilities.map((facility) => (
+                  {recentFacilities.map((facility: AdminFacility) => (
                     <div key={facility.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                       <div>
                         <p className="font-medium text-gray-900">{facility.name}</p>
@@ -243,7 +259,7 @@ export default async function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="grid md:grid-cols-4 gap-4">
-              {stats.facilitiesByType.map((item) => (
+              {stats.facilitiesByType.map((item: FacilityTypeCount) => (
                 <div key={item.type} className="p-4 bg-gray-50 rounded-lg text-center">
                   <p className="text-2xl font-bold text-gray-900">{item._count}</p>
                   <p className="text-sm text-gray-500">{item.type.replace("_", " ")}</p>

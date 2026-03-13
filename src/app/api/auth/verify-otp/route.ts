@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     await db.user.update({
       where: { phone },
       data: {
-        emailVerified: new Date(),
+        isVerified: true,
       },
     });
 
