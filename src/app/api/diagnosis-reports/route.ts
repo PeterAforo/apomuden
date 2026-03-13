@@ -124,6 +124,13 @@ export async function POST(request: NextRequest) {
     
     const isAnomalous = avgCases > 0 && caseCount > avgCases * 2;
 
+    if (!session.user.id) {
+      return NextResponse.json(
+        { error: "User ID not found" },
+        { status: 401 }
+      );
+    }
+
     const report = await db.diagnosisReport.create({
       data: {
         facilityId: targetFacilityId,
