@@ -516,7 +516,6 @@ async function seedFacilities() {
         phone: facility.phone,
         email: facility.email,
         address: facility.address,
-        city: facility.city,
         regionId: greaterAccra.id,
         districtId: districtId,
         latitude: facility.latitude,
