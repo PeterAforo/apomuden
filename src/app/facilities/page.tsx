@@ -6,9 +6,19 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { MapPin, Search } from "lucide-react";
+import { MapPin, Search, Map, List, Grid } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import dynamic from "next/dynamic";
+
+const FacilityMap = dynamic(() => import("@/components/maps/FacilityMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-[500px] bg-gray-100 rounded-xl animate-pulse flex items-center justify-center">
+      <p className="text-gray-500">Loading map...</p>
+    </div>
+  ),
+});
 
 interface Facility {
   id: string;
@@ -93,6 +103,8 @@ export default function FacilitiesPage() {
   const [nhisOnly, setNhisOnly] = useState(false);
   const [emergencyOnly, setEmergencyOnly] = useState(false);
   const [total, setTotal] = useState(0);
+  const [viewMode, setViewMode] = useState<"grid" | "list" | "map">("grid");
+  const [selectedFacilityId, setSelectedFacilityId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchFacilities();
@@ -203,12 +215,43 @@ export default function FacilitiesPage() {
             <span className="ml-auto text-sm text-gray-600">
               {total} facilities found
             </span>
+
+            {/* View Mode Toggle */}
+            <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={() => setViewMode("grid")}
+                className={`p-2 rounded-md transition-colors ${
+                  viewMode === "grid" ? "bg-white shadow-sm text-emerald-600" : "text-gray-500 hover:text-gray-700"
+                }`}
+                title="Grid view"
+              >
+                <Grid className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => setViewMode("list")}
+                className={`p-2 rounded-md transition-colors ${
+                  viewMode === "list" ? "bg-white shadow-sm text-emerald-600" : "text-gray-500 hover:text-gray-700"
+                }`}
+                title="List view"
+              >
+                <List className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => setViewMode("map")}
+                className={`p-2 rounded-md transition-colors ${
+                  viewMode === "map" ? "bg-white shadow-sm text-emerald-600" : "text-gray-500 hover:text-gray-700"
+                }`}
+                title="Map view"
+              >
+                <Map className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Results */}
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 flex-1">
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
@@ -217,8 +260,48 @@ export default function FacilitiesPage() {
           <div className="text-center py-12">
             <p className="text-gray-600">No facilities found matching your criteria.</p>
           </div>
+        ) : viewMode === "map" ? (
+          /* Map View */
+          <div className="grid lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <FacilityMap
+                facilities={facilities}
+                showUserLocation
+                showLegend
+                selectedFacilityId={selectedFacilityId || undefined}
+                onFacilityClick={(f) => setSelectedFacilityId(f.id)}
+                className="h-[600px]"
+              />
+            </div>
+            <div className="space-y-3 max-h-[600px] overflow-y-auto">
+              <h3 className="font-semibold text-gray-900 sticky top-0 bg-gray-50 py-2">
+                Facilities ({facilities.length})
+              </h3>
+              {facilities.map((facility) => (
+                <button
+                  key={facility.id}
+                  onClick={() => setSelectedFacilityId(facility.id)}
+                  className={`w-full text-left p-3 rounded-lg border transition-all ${
+                    selectedFacilityId === facility.id
+                      ? "border-emerald-500 bg-emerald-50 shadow-md"
+                      : "border-gray-200 bg-white hover:border-emerald-300 hover:shadow-sm"
+                  }`}
+                >
+                  <h4 className="font-medium text-gray-900 text-sm line-clamp-1">{facility.name}</h4>
+                  <p className="text-xs text-gray-500">{facility.type.replace("_", " ")}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-yellow-500 text-xs">★ {facility.averageRating.toFixed(1)}</span>
+                    {facility.nhisAccepted && (
+                      <span className="text-xs text-emerald-600">NHIS</span>
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
         ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          /* Grid/List View */
+          <div className={viewMode === "grid" ? "grid gap-6 md:grid-cols-2 lg:grid-cols-3" : "space-y-4"}>
             {facilities.map((facility) => (
               <Card key={facility.id} className="group overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-0 shadow-md">
                 {/* Card Header with gradient */}
