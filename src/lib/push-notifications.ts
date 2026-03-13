@@ -1,6 +1,130 @@
 // Push Notification Service
+// Supports both VAPID (web-push) and Pusher Beams
 
 const PUBLIC_VAPID_KEY = process.env.NEXT_PUBLIC_VAPID_KEY || '';
+const PUSHER_BEAMS_INSTANCE_ID = process.env.NEXT_PUBLIC_PUSHER_BEAMS_INSTANCE_ID || '';
+
+// Pusher Beams client instance
+let beamsClient: any = null;
+
+// Initialize Pusher Beams
+export async function initializePusherBeams(): Promise<boolean> {
+  if (typeof window === 'undefined') return false;
+  
+  if (!PUSHER_BEAMS_INSTANCE_ID) {
+    console.log('Pusher Beams instance ID not configured');
+    return false;
+  }
+
+  try {
+    // Load Pusher Beams SDK dynamically
+    if (!(window as any).PusherPushNotifications) {
+      await loadPusherBeamsScript();
+    }
+
+    const PusherPushNotifications = (window as any).PusherPushNotifications;
+    
+    beamsClient = new PusherPushNotifications.Client({
+      instanceId: PUSHER_BEAMS_INSTANCE_ID,
+    });
+
+    await beamsClient.start();
+    console.log('Pusher Beams initialized successfully');
+    return true;
+  } catch (error) {
+    console.error('Failed to initialize Pusher Beams:', error);
+    return false;
+  }
+}
+
+// Load Pusher Beams script dynamically
+function loadPusherBeamsScript(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if ((window as any).PusherPushNotifications) {
+      resolve();
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://js.pusher.com/beams/2.1.0/push-notifications-cdn.js';
+    script.async = true;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error('Failed to load Pusher Beams SDK'));
+    document.head.appendChild(script);
+  });
+}
+
+// Subscribe to Pusher Beams interests (topics)
+export async function subscribeToBeamsInterests(interests: string[]): Promise<boolean> {
+  if (!beamsClient) {
+    const initialized = await initializePusherBeams();
+    if (!initialized) return false;
+  }
+
+  try {
+    await beamsClient.setDeviceInterests(interests);
+    console.log('Subscribed to interests:', interests);
+    return true;
+  } catch (error) {
+    console.error('Failed to subscribe to interests:', error);
+    return false;
+  }
+}
+
+// Add a single interest
+export async function addBeamsInterest(interest: string): Promise<boolean> {
+  if (!beamsClient) {
+    const initialized = await initializePusherBeams();
+    if (!initialized) return false;
+  }
+
+  try {
+    await beamsClient.addDeviceInterest(interest);
+    console.log('Added interest:', interest);
+    return true;
+  } catch (error) {
+    console.error('Failed to add interest:', error);
+    return false;
+  }
+}
+
+// Remove an interest
+export async function removeBeamsInterest(interest: string): Promise<boolean> {
+  if (!beamsClient) return false;
+
+  try {
+    await beamsClient.removeDeviceInterest(interest);
+    console.log('Removed interest:', interest);
+    return true;
+  } catch (error) {
+    console.error('Failed to remove interest:', error);
+    return false;
+  }
+}
+
+// Get current interests
+export async function getBeamsInterests(): Promise<string[]> {
+  if (!beamsClient) return [];
+
+  try {
+    return await beamsClient.getDeviceInterests();
+  } catch (error) {
+    console.error('Failed to get interests:', error);
+    return [];
+  }
+}
+
+// Stop Pusher Beams
+export async function stopPusherBeams(): Promise<void> {
+  if (beamsClient) {
+    try {
+      await beamsClient.stop();
+      beamsClient = null;
+    } catch (error) {
+      console.error('Failed to stop Pusher Beams:', error);
+    }
+  }
+}
 
 export async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
   if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
