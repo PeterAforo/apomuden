@@ -118,7 +118,7 @@ export default function TelemedicinePage() {
     return matchesSearch && matchesSpecialty;
   });
 
-  const specialties = [...new Set(doctors.map(d => d.specialty))];
+  const specialties = Array.from(new Set(doctors.map(d => d.specialty)));
 
   return (
     <div className="min-h-screen bg-gray-50">
