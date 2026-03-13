@@ -113,11 +113,11 @@ export default function DashboardPage() {
               </div>
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold">
-                  Welcome back, {session.user.name?.split(" ")[0] || "User"}!
+                  Welcome back, {session.user?.name?.split(" ")[0] || "User"}!
                 </h1>
                 <p className="text-emerald-100 flex items-center gap-2 mt-1">
                   <Phone className="h-4 w-4" />
-                  {session.user.phone || session.user.email}
+                  {session.user?.email || "User"}
                 </p>
               </div>
             </div>
