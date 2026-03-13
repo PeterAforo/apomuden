@@ -475,7 +475,7 @@ export async function POST() {
           operatingHours: { open: "00:00", close: "23:59", is24Hours: facility.type === "HOSPITAL" },
           description: facility.description,
           status: "APPROVED",
-          tier: facility.type === "HOSPITAL" ? 4 : facility.type === "POLYCLINIC" ? 3 : 2,
+          tier: facility.type === "HOSPITAL" ? "FOUR_STAR" : facility.type === "POLYCLINIC" ? "THREE_STAR" : "TWO_STAR",
           rating: 4.0 + Math.random() * 0.9,
           reviewCount: Math.floor(Math.random() * 50) + 10,
         },
