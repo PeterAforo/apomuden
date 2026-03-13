@@ -54,6 +54,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (!session.user.id) {
+      return NextResponse.json(
+        { error: "User ID not found" },
+        { status: 401 }
+      );
+    }
+
     const alert = await db.alert.create({
       data: {
         title,
