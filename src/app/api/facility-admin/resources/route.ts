@@ -84,6 +84,13 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
     const { bedCount, icuBeds, icuBedsAvailable } = body;
 
+    if (!session.user.id) {
+      return NextResponse.json(
+        { error: "User ID not found" },
+        { status: 401 }
+      );
+    }
+
     // Update facility with new resource counts
     await db.facility.update({
       where: { id: facilityStaff.facilityId },
