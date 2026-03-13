@@ -181,7 +181,7 @@ export async function POST(request: NextRequest) {
     };
 
     // Log the symptom check (anonymized)
-    if (session?.user) {
+    if (session?.user?.id) {
       await db.auditLog.create({
         data: {
           userId: session.user.id,
