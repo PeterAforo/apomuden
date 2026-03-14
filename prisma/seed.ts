@@ -1,4 +1,5 @@
-import { PrismaClient, FacilityType, FacilityTier, FacilityStatus } from "@prisma/client";
+import { PrismaClient, FacilityType, FacilityTier, FacilityStatus, UserRole } from "@prisma/client";
+import { hash } from "bcryptjs";
 
 const prisma = new PrismaClient();
 
@@ -63,6 +64,47 @@ const serviceTaxonomy = [
 
 async function main() {
   console.log("🌱 Starting database seed...");
+
+  // Seed test admin users
+  console.log("👤 Seeding admin users...");
+  const adminPassword = await hash("Admin@123", 12);
+  
+  const adminUsers = [
+    {
+      email: "admin@apomuden.gov.gh",
+      phone: "+233200000001",
+      name: "Super Admin",
+      role: UserRole.SUPER_ADMIN,
+    },
+    {
+      email: "ministry@apomuden.gov.gh",
+      phone: "+233200000002",
+      name: "Ministry Admin",
+      role: UserRole.MINISTRY_ADMIN,
+    },
+    {
+      email: "analyst@apomuden.gov.gh",
+      phone: "+233200000003",
+      name: "Health Analyst",
+      role: UserRole.ANALYST,
+    },
+  ];
+
+  for (const admin of adminUsers) {
+    await prisma.user.upsert({
+      where: { email: admin.email },
+      update: {},
+      create: {
+        email: admin.email,
+        phone: admin.phone,
+        name: admin.name,
+        role: admin.role,
+        passwordHash: adminPassword,
+        isVerified: true,
+      },
+    });
+  }
+  console.log(`✅ Seeded ${adminUsers.length} admin users`);
 
   // Seed regions and districts
   console.log("📍 Seeding regions and districts...");

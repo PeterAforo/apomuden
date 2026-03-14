@@ -64,6 +64,7 @@ export const {
           id: user.id,
           email: user.email,
           name: user.name,
+          role: user.role,
         };
       },
     }),
@@ -101,6 +102,7 @@ export const {
           id: user.id,
           email: user.email,
           name: user.name,
+          role: user.role,
         };
       },
     }),
@@ -109,12 +111,16 @@ export const {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        token.role = (user as { role?: string }).role;
       }
       return token;
     },
     async session({ session, token }) {
       if (token && session.user) {
-        (session.user as { id: string }).id = token.id as string;
+        Object.assign(session.user, {
+          id: token.id as string,
+          role: token.role as string,
+        });
       }
       return session;
     },
