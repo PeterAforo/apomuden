@@ -226,9 +226,9 @@ export default function TelemedicinePage() {
                       <h4 className="font-semibold">{apt.doctorName}</h4>
                       <p className="text-sm text-gray-600">{apt.specialty}</p>
                       <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
-                        <span className="flex items-center gap-1">
+                        <span className="flex items-center gap-1" suppressHydrationWarning>
                           <Calendar className="h-4 w-4" />
-                          {new Date(apt.date).toLocaleDateString()}
+                          {new Date(apt.date).toLocaleDateString('en-GB')}
                         </span>
                         <span className="flex items-center gap-1">
                           <Clock className="h-4 w-4" />

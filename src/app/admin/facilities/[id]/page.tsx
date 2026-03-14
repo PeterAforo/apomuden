@@ -229,16 +229,16 @@ export default async function FacilityDetailPage({ params }: PageProps) {
               <CardContent className="text-sm space-y-2">
                 <div>
                   <p className="text-gray-500">Created</p>
-                  <p>{facility.createdAt.toLocaleDateString()}</p>
+                  <p suppressHydrationWarning>{facility.createdAt.toLocaleDateString('en-GB')}</p>
                 </div>
                 <div>
                   <p className="text-gray-500">Last Updated</p>
-                  <p>{facility.updatedAt.toLocaleDateString()}</p>
+                  <p suppressHydrationWarning>{facility.updatedAt.toLocaleDateString('en-GB')}</p>
                 </div>
                 {facility.verifiedAt && (
                   <div>
                     <p className="text-gray-500">Verified</p>
-                    <p>{facility.verifiedAt.toLocaleDateString()}</p>
+                    <p suppressHydrationWarning>{facility.verifiedAt.toLocaleDateString('en-GB')}</p>
                   </div>
                 )}
               </CardContent>

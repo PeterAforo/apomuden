@@ -718,7 +718,7 @@ export default function HomePage() {
                   </div>
                   <h3 className="font-semibold text-gray-900 line-clamp-2 mb-2">{news.title}</h3>
                   <p className="text-sm text-gray-600 line-clamp-2 mb-3">{news.summary}</p>
-                  <p className="text-xs text-gray-500">{new Date(news.date).toLocaleDateString()}</p>
+                  <p className="text-xs text-gray-500" suppressHydrationWarning>{new Date(news.date).toLocaleDateString('en-GB')}</p>
                 </CardContent>
               </Card>
             ))}

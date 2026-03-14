@@ -321,9 +321,9 @@ export default function AlertManagementPage() {
                         </div>
                         <h3 className="text-lg font-semibold text-gray-900">{alert.title}</h3>
                         <p className="text-gray-600 mt-1 line-clamp-2">{alert.body}</p>
-                        <p className="text-sm text-gray-400 mt-2">
-                          Created: {new Date(alert.createdAt).toLocaleDateString()}
-                          {alert.sentAt && ` • Sent: ${new Date(alert.sentAt).toLocaleDateString()}`}
+                        <p className="text-sm text-gray-400 mt-2" suppressHydrationWarning>
+                          Created: {new Date(alert.createdAt).toLocaleDateString('en-GB')}
+                          {alert.sentAt && ` • Sent: ${new Date(alert.sentAt).toLocaleDateString('en-GB')}`}
                         </p>
                       </div>
                       <div className="flex gap-2">
