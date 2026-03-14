@@ -197,7 +197,7 @@ export default function EmergencyPage() {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Provide any additional details that might help responders..."
-                  className="w-full mt-2 p-3 border rounded-lg resize-none h-24"
+                  className="w-full mt-2 p-3 border rounded-lg resize-none h-24 text-base sm:text-sm"
                 />
               </div>
 

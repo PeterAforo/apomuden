@@ -271,18 +271,18 @@ export default function FacilitiesPage() {
           </div>
         ) : viewMode === "map" ? (
           /* Map View */
-          <div className="grid lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
+          <div className="flex flex-col lg:grid lg:grid-cols-3 gap-4 lg:gap-6">
+            <div className="lg:col-span-2 order-1">
               <FacilityMap
                 facilities={facilities}
                 showUserLocation
                 showLegend
                 selectedFacilityId={selectedFacilityId || undefined}
                 onFacilityClick={(f) => setSelectedFacilityId(f.id)}
-                className="h-[600px]"
+                className="h-[400px] sm:h-[500px] lg:h-[600px]"
               />
             </div>
-            <div className="space-y-3 max-h-[600px] overflow-y-auto">
+            <div className="space-y-3 max-h-[300px] lg:max-h-[600px] overflow-y-auto order-2 -webkit-overflow-scrolling-touch">
               <h3 className="font-semibold text-gray-900 sticky top-0 bg-gray-50 py-2">
                 Facilities ({facilities.length})
               </h3>

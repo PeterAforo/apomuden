@@ -280,7 +280,7 @@ export default function LoginPage() {
                               value={digit}
                               onChange={(e) => handleOtpChange(index, e.target.value)}
                               onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                              className="w-12 h-12 text-center text-lg font-bold"
+                              className="w-11 h-11 sm:w-12 sm:h-12 text-center text-base sm:text-lg font-bold"
                             />
                           ))}
                         </div>

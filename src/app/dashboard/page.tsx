@@ -121,9 +121,9 @@ export default function DashboardPage() {
                 </p>
               </div>
             </div>
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-2 sm:gap-3">
               <Link href="/dashboard/profile">
-                <Button variant="secondary" size="sm" className="bg-white/20 hover:bg-white/30 text-white border-0">
+                <Button variant="secondary" size="sm" className="bg-white/20 hover:bg-white/30 text-white border-0 min-h-[44px]">
                   <Settings className="h-4 w-4 mr-2" />
                   Settings
                 </Button>
@@ -131,7 +131,7 @@ export default function DashboardPage() {
               <Button
                 variant="secondary"
                 size="sm"
-                className="bg-white/20 hover:bg-white/30 text-white border-0"
+                className="bg-white/20 hover:bg-white/30 text-white border-0 min-h-[44px]"
                 onClick={() => signOut({ callbackUrl: "/" })}
               >
                 <LogOut className="h-4 w-4 mr-2" />

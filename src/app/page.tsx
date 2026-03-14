@@ -274,7 +274,7 @@ export default function HomePage() {
       </header>
 
       {/* Hero Section with Sliding Background */}
-      <section className="relative h-[600px] md:h-[700px] overflow-hidden">
+      <section className="relative min-h-[500px] h-[100svh] max-h-[700px] md:min-h-[600px] overflow-hidden">
         {/* Background Images */}
         {HERO_IMAGES.map((img, index) => (
           <div
@@ -297,23 +297,26 @@ export default function HomePage() {
             <button
               key={index}
               onClick={() => setCurrentSlide(index)}
-              className={`w-3 h-3 rounded-full transition-all ${
-                index === currentSlide ? "bg-white w-8" : "bg-white/50"
-              }`}
-            />
+              className={`min-w-[44px] min-h-[44px] flex items-center justify-center`}
+              aria-label={`Go to slide ${index + 1}`}
+            >
+              <span className={`block rounded-full transition-all ${
+                index === currentSlide ? "bg-white w-8 h-3" : "bg-white/50 w-3 h-3"
+              }`} />
+            </button>
           ))}
         </div>
 
         {/* Navigation Arrows */}
         <button
           onClick={() => setCurrentSlide((prev) => (prev - 1 + HERO_IMAGES.length) % HERO_IMAGES.length)}
-          className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-white/20 hover:bg-white/30 rounded-full z-10"
+          className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 p-3 bg-white/20 hover:bg-white/30 rounded-full z-10 min-w-[44px] min-h-[44px] flex items-center justify-center"
         >
           <ChevronLeft className="h-6 w-6 text-white" />
         </button>
         <button
           onClick={() => setCurrentSlide((prev) => (prev + 1) % HERO_IMAGES.length)}
-          className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-white/20 hover:bg-white/30 rounded-full z-10"
+          className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 p-3 bg-white/20 hover:bg-white/30 rounded-full z-10 min-w-[44px] min-h-[44px] flex items-center justify-center"
         >
           <ChevronRight className="h-6 w-6 text-white" />
         </button>
@@ -372,7 +375,7 @@ export default function HomePage() {
 
               {/* Quick Actions */}
               <motion.div 
-                className="flex flex-wrap justify-center gap-4"
+                className="grid grid-cols-2 sm:flex sm:flex-wrap justify-center gap-3 sm:gap-4"
                 variants={fadeInUp}
                 transition={{ duration: 0.6, delay: 0.6 }}
               >
@@ -605,7 +608,7 @@ export default function HomePage() {
             </Link>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
             {featuredFacilities.map((facility) => (
               <Link key={facility.id} href={`/facilities/${facility.slug}`}>
                 <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer overflow-hidden group">
@@ -670,8 +673,10 @@ export default function HomePage() {
             {MOCK_NEWS.map((news) => (
               <Card key={news.id} className="h-full hover:shadow-lg transition-shadow cursor-pointer overflow-hidden">
                 <div
-                  className="h-40 bg-cover bg-center"
+                  className="aspect-video bg-cover bg-center"
                   style={{ backgroundImage: `url(${news.image})` }}
+                  role="img"
+                  aria-label={news.title}
                 />
                 <CardContent className="p-5">
                   <div className="flex items-center gap-2 mb-2">
@@ -893,10 +898,10 @@ export default function HomePage() {
       {/* Emergency Request Modal */}
       {showEmergencyModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-md w-full p-6 relative">
+          <div className="bg-white rounded-xl w-full max-w-md sm:mx-auto p-4 sm:p-6 relative max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setShowEmergencyModal(false)}
-              className="absolute top-4 right-4 p-1 hover:bg-gray-100 rounded-full"
+              className="absolute top-3 right-3 p-2 hover:bg-gray-100 rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center"
             >
               <X className="h-5 w-5 text-gray-500" />
             </button>
@@ -973,10 +978,10 @@ export default function HomePage() {
       {/* Notification Settings Modal */}
       {showNotificationModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-md w-full p-6 relative">
+          <div className="bg-white rounded-xl w-full max-w-md sm:mx-auto p-4 sm:p-6 relative max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setShowNotificationModal(false)}
-              className="absolute top-4 right-4 p-1 hover:bg-gray-100 rounded-full"
+              className="absolute top-3 right-3 p-2 hover:bg-gray-100 rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center"
             >
               <X className="h-5 w-5 text-gray-500" />
             </button>

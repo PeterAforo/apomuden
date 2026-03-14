@@ -85,6 +85,24 @@
   padding-top: env(safe-area-inset-top, 0);
 }
 
+/* Touch scroll support for iOS */
+.-webkit-overflow-scrolling-touch {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Responsive chart container for future use */
+.chart-container {
+  width: 100%;
+  min-height: 200px;
+  max-height: 400px;
+}
+
+@media (max-width: 640px) {
+  .chart-container {
+    min-height: 150px;
+  }
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
