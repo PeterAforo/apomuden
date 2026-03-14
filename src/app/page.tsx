@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
-import { motion, useInView } from "framer-motion";
+import { motion, useInView, PanInfo } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -144,6 +144,25 @@ export default function HomePage() {
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [showEmergencyModal, setShowEmergencyModal] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+
+  // Swipe gesture handlers for hero carousel
+  const handleDragEnd = useCallback(
+    (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+      const swipeThreshold = 50;
+      const swipeVelocity = 500;
+      
+      if (info.offset.x < -swipeThreshold || info.velocity.x < -swipeVelocity) {
+        // Swiped left - go to next slide
+        setCurrentSlide((prev) => (prev + 1) % HERO_IMAGES.length);
+      } else if (info.offset.x > swipeThreshold || info.velocity.x > swipeVelocity) {
+        // Swiped right - go to previous slide
+        setCurrentSlide((prev) => (prev - 1 + HERO_IMAGES.length) % HERO_IMAGES.length);
+      }
+      setIsDragging(false);
+    },
+    []
+  );
 
   // Auto-slide hero images
   useEffect(() => {
@@ -274,7 +293,15 @@ export default function HomePage() {
       </header>
 
       {/* Hero Section with Sliding Background */}
-      <section className="relative min-h-[500px] h-[100svh] max-h-[700px] md:min-h-[600px] overflow-hidden">
+      <motion.section 
+        className="relative min-h-[500px] h-[100svh] max-h-[700px] md:min-h-[600px] overflow-hidden touch-pan-y"
+        drag="x"
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.2}
+        onDragStart={() => setIsDragging(true)}
+        onDragEnd={handleDragEnd}
+        style={{ cursor: isDragging ? "grabbing" : "grab" }}
+      >
         {/* Background Images */}
         {HERO_IMAGES.map((img, index) => (
           <div
@@ -311,12 +338,14 @@ export default function HomePage() {
         <button
           onClick={() => setCurrentSlide((prev) => (prev - 1 + HERO_IMAGES.length) % HERO_IMAGES.length)}
           className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 p-3 bg-white/20 hover:bg-white/30 rounded-full z-10 min-w-[44px] min-h-[44px] flex items-center justify-center"
+          aria-label="Previous slide"
         >
           <ChevronLeft className="h-6 w-6 text-white" />
         </button>
         <button
           onClick={() => setCurrentSlide((prev) => (prev + 1) % HERO_IMAGES.length)}
           className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 p-3 bg-white/20 hover:bg-white/30 rounded-full z-10 min-w-[44px] min-h-[44px] flex items-center justify-center"
+          aria-label="Next slide"
         >
           <ChevronRight className="h-6 w-6 text-white" />
         </button>
@@ -420,7 +449,7 @@ export default function HomePage() {
             </motion.div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Health Alerts Section */}
       <section className="py-16 bg-amber-50/50">
@@ -689,7 +718,7 @@ export default function HomePage() {
                   </div>
                   <h3 className="font-semibold text-gray-900 line-clamp-2 mb-2">{news.title}</h3>
                   <p className="text-sm text-gray-600 line-clamp-2 mb-3">{news.summary}</p>
-                  <p className="text-xs text-gray-400">{new Date(news.date).toLocaleDateString()}</p>
+                  <p className="text-xs text-gray-500">{new Date(news.date).toLocaleDateString()}</p>
                 </CardContent>
               </Card>
             ))}
