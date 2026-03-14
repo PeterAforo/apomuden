@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { MapPin, Search, Map, List, Grid } from "lucide-react";
+import { MapPin, Search, Map, List, Grid, Loader2 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import dynamic from "next/dynamic";
@@ -94,49 +94,98 @@ function StarRating({ rating }: { rating: number }) {
   );
 }
 
+const PAGE_SIZE = 12;
+
 export default function FacilitiesPage() {
   const [facilities, setFacilities] = useState<Facility[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState("");
   const [selectedRegion, setSelectedRegion] = useState("");
   const [nhisOnly, setNhisOnly] = useState(false);
   const [emergencyOnly, setEmergencyOnly] = useState(false);
   const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const [viewMode, setViewMode] = useState<"grid" | "list" | "map">("grid");
   const [selectedFacilityId, setSelectedFacilityId] = useState<string | null>(null);
+  
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
+  // Reset and fetch when filters change
   useEffect(() => {
-    fetchFacilities();
+    setPage(1);
+    setFacilities([]);
+    setHasMore(true);
+    fetchFacilities(1, true);
   }, [selectedType, selectedRegion, nhisOnly, emergencyOnly]);
 
-  const fetchFacilities = async (query = searchQuery) => {
-    setLoading(true);
+  const fetchFacilities = async (pageNum: number, reset = false) => {
+    if (reset) {
+      setLoading(true);
+    } else {
+      setLoadingMore(true);
+    }
+    
     try {
       const params = new URLSearchParams();
-      if (query) params.set("query", query);
+      if (searchQuery) params.set("query", searchQuery);
       if (selectedType) params.set("type", selectedType);
       if (selectedRegion) params.set("region", selectedRegion);
       if (nhisOnly) params.set("nhis", "true");
       if (emergencyOnly) params.set("emergency", "true");
+      params.set("page", pageNum.toString());
+      params.set("pageSize", PAGE_SIZE.toString());
 
       const res = await fetch(`/api/facilities?${params.toString()}`);
       const data = await res.json();
 
       if (data.success) {
-        setFacilities(data.data.items);
+        const newItems = data.data.items;
+        if (reset) {
+          setFacilities(newItems);
+        } else {
+          setFacilities(prev => [...prev, ...newItems]);
+        }
         setTotal(data.data.total);
+        setHasMore(pageNum < data.data.totalPages);
+        setPage(pageNum);
       }
     } catch (error) {
       console.error("Error fetching facilities:", error);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
 
+  // Intersection Observer for infinite scroll
+  const lastFacilityRef = useCallback((node: HTMLDivElement | null) => {
+    if (loading || loadingMore) return;
+    
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+    }
+    
+    observerRef.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && hasMore && !loadingMore) {
+        fetchFacilities(page + 1);
+      }
+    }, { threshold: 0.1 });
+    
+    if (node) {
+      observerRef.current.observe(node);
+    }
+  }, [loading, loadingMore, hasMore, page]);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    fetchFacilities();
+    setPage(1);
+    setFacilities([]);
+    setHasMore(true);
+    fetchFacilities(1, true);
   };
 
   return (
@@ -311,8 +360,12 @@ export default function FacilitiesPage() {
         ) : (
           /* Grid/List View */
           <div className={viewMode === "grid" ? "grid gap-6 md:grid-cols-2 lg:grid-cols-3" : "space-y-4"}>
-            {facilities.map((facility) => (
-              <Card key={facility.id} className="group overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-0 shadow-md">
+            {facilities.map((facility, index) => (
+              <Card 
+                key={facility.id} 
+                ref={index === facilities.length - 1 ? lastFacilityRef : null}
+                className="group overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-0 shadow-md"
+              >
                 {/* Card Header with gradient */}
                 <div className="h-2 bg-gradient-to-r from-emerald-500 to-teal-500"></div>
                 <CardContent className="p-5">
@@ -386,6 +439,21 @@ export default function FacilitiesPage() {
                 </CardContent>
               </Card>
             ))}
+          </div>
+        )}
+
+        {/* Load More Indicator */}
+        {loadingMore && (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
+            <span className="ml-2 text-gray-600">Loading more facilities...</span>
+          </div>
+        )}
+
+        {/* End of Results */}
+        {!loading && !loadingMore && !hasMore && facilities.length > 0 && (
+          <div className="text-center py-8 text-gray-500">
+            <p>You&apos;ve reached the end — {facilities.length} of {total} facilities shown</p>
           </div>
         )}
       </main>
