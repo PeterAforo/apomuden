@@ -1,7 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { sendOTP } from "@/lib/sms";
+import { checkRateLimit, rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
+  // Apply rate limiting (3 requests per 5 minutes for OTP)
+  const rateLimit = checkRateLimit(request, RATE_LIMITS.OTP);
+  if (rateLimit.limited) {
+    return rateLimitResponse(rateLimit.resetIn);
+  }
+
   try {
     const { phone } = await request.json();
 
@@ -36,15 +44,17 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // TODO: Send OTP via SMS (Hubtel, Arkesel, or other Ghana SMS provider)
-    // For demo purposes, we'll log it
-    console.log(`OTP for ${phone}: ${otp}`);
+    // Send OTP via SMS using mNotify
+    const smsResult = await sendOTP(phone, otp);
+    if (!smsResult.success) {
+      console.error("Failed to send OTP SMS:", smsResult.error);
+    }
 
     return NextResponse.json({
       success: true,
       message: "OTP sent successfully",
-      // Remove this in production - only for demo
-      demo_otp: process.env.NODE_ENV === "development" ? otp : undefined,
+      // Only expose OTP in development for testing
+      ...(process.env.NODE_ENV === "development" && { demo_otp: otp }),
     });
   } catch (error) {
     console.error("Send OTP error:", error);

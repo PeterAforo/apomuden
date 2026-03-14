@@ -167,84 +167,93 @@ export default function FacilitiesPage() {
       {/* Filters */}
       <section className="bg-white border-b py-4">
         <div className="container mx-auto px-4">
-          <div className="flex flex-wrap items-center gap-4">
-            <select
-              value={selectedType}
-              onChange={(e) => setSelectedType(e.target.value)}
-              className="px-3 py-2 border rounded-lg text-sm"
-            >
-              {FACILITY_TYPES.map((type) => (
-                <option key={type.value} value={type.value}>
-                  {type.label}
-                </option>
-              ))}
-            </select>
-
-            <select
-              value={selectedRegion}
-              onChange={(e) => setSelectedRegion(e.target.value)}
-              className="px-3 py-2 border rounded-lg text-sm"
-            >
-              {REGIONS.map((region) => (
-                <option key={region.value} value={region.value}>
-                  {region.label}
-                </option>
-              ))}
-            </select>
-
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={nhisOnly}
-                onChange={(e) => setNhisOnly(e.target.checked)}
-                className="rounded"
-              />
-              NHIS Accepted
-            </label>
-
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={emergencyOnly}
-                onChange={(e) => setEmergencyOnly(e.target.checked)}
-                className="rounded"
-              />
-              Emergency Services
-            </label>
-
-            <span className="ml-auto text-sm text-gray-600">
-              {total} facilities found
-            </span>
-
-            {/* View Mode Toggle */}
-            <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-              <button
-                onClick={() => setViewMode("grid")}
-                className={`p-2 rounded-md transition-colors ${
-                  viewMode === "grid" ? "bg-white shadow-sm text-emerald-600" : "text-gray-500 hover:text-gray-700"
-                }`}
-                title="Grid view"
+          <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 sm:gap-4">
+            {/* Filters Row */}
+            <div className="flex flex-wrap gap-2 sm:gap-4">
+              <select
+                value={selectedType}
+                onChange={(e) => setSelectedType(e.target.value)}
+                className="flex-1 sm:flex-none px-3 py-2 border rounded-lg text-base sm:text-sm min-h-[44px]"
               >
-                <Grid className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => setViewMode("list")}
-                className={`p-2 rounded-md transition-colors ${
-                  viewMode === "list" ? "bg-white shadow-sm text-emerald-600" : "text-gray-500 hover:text-gray-700"
-                }`}
-                title="List view"
+                {FACILITY_TYPES.map((type) => (
+                  <option key={type.value} value={type.value}>
+                    {type.label}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                value={selectedRegion}
+                onChange={(e) => setSelectedRegion(e.target.value)}
+                className="flex-1 sm:flex-none px-3 py-2 border rounded-lg text-base sm:text-sm min-h-[44px]"
               >
-                <List className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => setViewMode("map")}
-                className={`p-2 rounded-md transition-colors ${
-                  viewMode === "map" ? "bg-white shadow-sm text-emerald-600" : "text-gray-500 hover:text-gray-700"
-                }`}
-                title="Map view"
-              >
-                <Map className="h-4 w-4" />
-              </button>
+                {REGIONS.map((region) => (
+                  <option key={region.value} value={region.value}>
+                    {region.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Checkboxes Row */}
+            <div className="flex flex-wrap gap-4">
+              <label className="flex items-center gap-2 text-sm min-h-[44px]">
+                <input
+                  type="checkbox"
+                  checked={nhisOnly}
+                  onChange={(e) => setNhisOnly(e.target.checked)}
+                  className="rounded w-5 h-5"
+                />
+                NHIS Accepted
+              </label>
+
+              <label className="flex items-center gap-2 text-sm min-h-[44px]">
+                <input
+                  type="checkbox"
+                  checked={emergencyOnly}
+                  onChange={(e) => setEmergencyOnly(e.target.checked)}
+                  className="rounded w-5 h-5"
+                />
+                Emergency Services
+              </label>
+            </div>
+
+            {/* Results count and view toggle */}
+            <div className="flex items-center justify-between sm:justify-end gap-4 sm:ml-auto w-full sm:w-auto">
+              <span className="text-sm text-gray-600">
+                {total} facilities found
+              </span>
+
+              {/* View Mode Toggle */}
+              <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+                <button
+                  onClick={() => setViewMode("grid")}
+                  className={`p-2.5 rounded-md transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center ${
+                    viewMode === "grid" ? "bg-white shadow-sm text-emerald-600" : "text-gray-500 hover:text-gray-700"
+                  }`}
+                  title="Grid view"
+                >
+                  <Grid className="h-5 w-5" />
+                </button>
+                <button
+                  onClick={() => setViewMode("list")}
+                  className={`p-2.5 rounded-md transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center ${
+                    viewMode === "list" ? "bg-white shadow-sm text-emerald-600" : "text-gray-500 hover:text-gray-700"
+                  }`}
+                  title="List view"
+                >
+                  <List className="h-5 w-5" />
+                </button>
+                <button
+                  onClick={() => setViewMode("map")}
+                  className={`p-2.5 rounded-md transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center ${
+                    viewMode === "map" ? "bg-white shadow-sm text-emerald-600" : "text-gray-500 hover:text-gray-700"
+                  }`}
+                  title="Map view"
+                >
+                  <Map className="h-5 w-5" />
+                </button>
+              </div>
             </div>
           </div>
         </div>

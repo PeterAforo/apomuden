@@ -1,33 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
-
-// Mock NHIS verification - In production, this would call the actual NHIA API
-const MOCK_NHIS_DATA: Record<string, {
-  status: "ACTIVE" | "EXPIRED" | "SUSPENDED";
-  memberName: string;
-  memberType: "INFORMAL" | "SSNIT" | "EXEMPT";
-  expiryDate: string;
-  dependents: number;
-  coverageLevel: "BASIC" | "PREMIUM";
-}> = {
-  "GHA-123456789-0": {
-    status: "ACTIVE",
-    memberName: "Kwame Asante",
-    memberType: "SSNIT",
-    expiryDate: "2025-12-31",
-    dependents: 3,
-    coverageLevel: "PREMIUM",
-  },
-  "GHA-987654321-0": {
-    status: "EXPIRED",
-    memberName: "Ama Serwaa",
-    memberType: "INFORMAL",
-    expiryDate: "2024-06-30",
-    dependents: 0,
-    coverageLevel: "BASIC",
-  },
-};
+import { verifyNHISMember, checkServiceCoverage, getNHISCoveredServices } from "@/lib/nhis";
 
 export async function POST(request: NextRequest) {
   try {
@@ -41,7 +15,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { nhisNumber } = body;
+    const { nhisNumber, serviceCode, servicePriceGhs } = body;
 
     if (!nhisNumber) {
       return NextResponse.json(
@@ -50,60 +24,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    // Check mock data first
-    const mockData = MOCK_NHIS_DATA[nhisNumber];
-    
-    if (mockData) {
-      // Update user's NHIS number if verified
-      if (mockData.status === "ACTIVE") {
-        await db.user.update({
-          where: { id: session.user.id },
-          data: { nhisNumber },
-        });
-      }
-
-      return NextResponse.json({
-        verified: mockData.status === "ACTIVE",
-        data: {
-          nhisNumber,
-          ...mockData,
-        },
-      });
+    // If checking service coverage
+    if (serviceCode && servicePriceGhs) {
+      const coverage = await checkServiceCoverage(nhisNumber, serviceCode, servicePriceGhs);
+      return NextResponse.json(coverage);
     }
 
-    // For any other number, generate random verification
-    const isValid = nhisNumber.startsWith("GHA-") && nhisNumber.length >= 10;
-    
-    if (!isValid) {
+    // Verify NHIS membership
+    const result = await verifyNHISMember(nhisNumber);
+
+    if (!result.success) {
       return NextResponse.json({
         verified: false,
-        error: "Invalid NHIS number format. Expected: GHA-XXXXXXXXX-X",
+        error: result.error,
       });
     }
 
-    // Simulate successful verification for valid format
-    const simulatedData = {
-      nhisNumber,
-      status: "ACTIVE" as const,
-      memberName: session.user.name || "Member",
-      memberType: "INFORMAL" as const,
-      expiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
-      dependents: 0,
-      coverageLevel: "BASIC" as const,
-    };
-
-    // Update user's NHIS number
-    await db.user.update({
-      where: { id: session.user.id },
-      data: { nhisNumber },
-    });
+    // Update user's NHIS number if verified
+    if (result.verified && result.member) {
+      await db.user.update({
+        where: { id: session.user.id },
+        data: { nhisNumber },
+      });
+    }
 
     return NextResponse.json({
-      verified: true,
-      data: simulatedData,
+      verified: result.verified,
+      data: result.member,
     });
   } catch (error) {
     console.error("Error verifying NHIS:", error);

@@ -1,17 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { auth } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth();
-
-    if (!session?.user) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
+    // Require VIEW_ANALYTICS permission
+    const { authorized, response } = await requirePermission("VIEW_ANALYTICS");
+    if (!authorized) return response!;
 
     const { searchParams } = new URL(request.url);
     const range = searchParams.get("range") || "30d";

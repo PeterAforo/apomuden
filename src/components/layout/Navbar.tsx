@@ -65,7 +65,7 @@ export default function Navbar({ onNotificationClick, notificationsEnabled }: Na
           {onNotificationClick && (
             <motion.button
               onClick={onNotificationClick}
-              className="relative p-2 hover:bg-emerald-50 rounded-full transition-colors"
+              className="relative p-3 hover:bg-emerald-50 rounded-full transition-colors"
               title="Health Notifications"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
@@ -99,7 +99,7 @@ export default function Navbar({ onNotificationClick, notificationsEnabled }: Na
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 hover:bg-gray-100 rounded-lg"
+            className="md:hidden p-3 hover:bg-gray-100 rounded-lg min-w-[44px] min-h-[44px] flex items-center justify-center"
           >
             {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>

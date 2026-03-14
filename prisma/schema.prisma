@@ -158,6 +158,7 @@ model User {
   email                   String?   @unique
   phone                   String    @unique
   name                    String
+  passwordHash            String?   @map("password_hash")
   role                    UserRole  @default(CITIZEN)
   ghanaCardId             String?   @unique @map("ghana_card_id")
   nhisNumber              String?   @map("nhis_number")

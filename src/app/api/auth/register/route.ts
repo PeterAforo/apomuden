@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import bcrypt from "bcryptjs";
+import { hashPassword, validatePasswordStrength } from "@/lib/password";
+import { sendOTP } from "@/lib/sms";
 
 export async function POST(request: NextRequest) {
   try {
@@ -54,14 +55,18 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      // TODO: Send OTP via SMS
-      console.log(`Registration OTP for ${phone}: ${otp}`);
+      // Send OTP via SMS
+      const smsResult = await sendOTP(phone, otp);
+      if (!smsResult.success) {
+        console.error("Failed to send OTP SMS:", smsResult.error);
+      }
 
       return NextResponse.json({
         success: true,
         message: "Account created. Please verify your phone number.",
         userId: user.id,
-        demo_otp: process.env.NODE_ENV === "development" ? otp : undefined,
+        // Only expose OTP in development for testing
+        ...(process.env.NODE_ENV === "development" && { demo_otp: otp }),
       });
 
     } else if (method === "email") {
@@ -84,14 +89,24 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      // Validate password strength
+      const passwordValidation = validatePasswordStrength(password);
+      if (!passwordValidation.isValid) {
+        return NextResponse.json(
+          { success: false, message: passwordValidation.errors[0] },
+          { status: 400 }
+        );
+      }
+
       // Hash password
-      const hashedPassword = await bcrypt.hash(password, 12);
+      const hashedPassword = await hashPassword(password);
 
       // Create user
       const user = await db.user.create({
         data: {
           name,
           email,
+          passwordHash: hashedPassword,
           phone: `temp_${Date.now()}`, // Temporary phone - user should add real one later
           role: "CITIZEN",
           isVerified: true, // Auto-verify for email registration

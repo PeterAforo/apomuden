@@ -1,5 +1,6 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+import { compare } from "bcryptjs";
 import { db } from "@/lib/db";
 
 export const {
@@ -82,12 +83,19 @@ export const {
           where: { email: credentials.email as string },
         });
 
-        if (!user) {
+        if (!user || !user.passwordHash) {
           return null;
         }
 
-        // For demo purposes, accept any password
-        // TODO: Add bcrypt password verification in production
+        // Verify password with bcrypt
+        const isValidPassword = await compare(
+          credentials.password as string,
+          user.passwordHash
+        );
+
+        if (!isValidPassword) {
+          return null;
+        }
 
         return {
           id: user.id,

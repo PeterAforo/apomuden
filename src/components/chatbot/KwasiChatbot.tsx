@@ -173,7 +173,7 @@ export default function KwasiChatbot() {
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => setIsOpen(true)}
-            className="fixed bottom-6 right-6 z-50 w-16 h-16 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full shadow-lg flex items-center justify-center"
+            className="fixed bottom-6 right-4 sm:right-6 z-50 w-14 h-14 sm:w-16 sm:h-16 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full shadow-lg flex items-center justify-center safe-area-bottom"
           >
             <MessageCircle className="h-7 w-7" />
             <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-xs font-bold">
@@ -192,11 +192,11 @@ export default function KwasiChatbot() {
               opacity: 1, 
               y: 0, 
               scale: 1,
-              height: isMinimized ? "auto" : "600px",
+              height: isMinimized ? "auto" : "min(600px, calc(100vh - 6rem))",
             }}
             exit={{ opacity: 0, y: 100, scale: 0.8 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="fixed bottom-6 right-6 z-50 w-[380px] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+            className="fixed bottom-6 right-4 sm:right-6 z-50 w-[calc(100vw-2rem)] sm:w-[380px] max-w-[380px] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col safe-area-bottom"
           >
             {/* Header */}
             <div className="bg-gradient-to-r from-emerald-600 to-emerald-700 text-white p-4">

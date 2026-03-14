@@ -349,24 +349,24 @@ export default function HomePage() {
                 variants={fadeInUp}
                 transition={{ duration: 0.6, delay: 0.4 }}
               >
-                <div className="flex items-center bg-white rounded-lg shadow-lg p-2">
-                  <div className="flex-1 flex items-center px-4">
-                    <Search className="h-5 w-5 text-gray-400 mr-3" />
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center bg-white rounded-lg shadow-lg p-2 gap-2 sm:gap-0">
+                  <div className="flex-1 flex items-center px-4 py-2 sm:py-0">
+                    <Search className="h-5 w-5 text-gray-400 mr-3 flex-shrink-0" />
                     <input
                       type="text"
-                      placeholder="Search for hospitals, clinics, or services..."
-                      className="w-full bg-transparent border-none outline-none text-sm text-gray-900"
+                      placeholder="Search hospitals, clinics..."
+                      className="w-full bg-transparent border-none outline-none text-base sm:text-sm text-gray-900 min-h-[44px]"
                     />
                   </div>
-                  <div className="flex items-center px-4 border-l">
-                    <MapPin className="h-5 w-5 text-gray-400 mr-3" />
+                  <div className="flex items-center px-4 py-2 sm:py-0 border-t sm:border-t-0 sm:border-l">
+                    <MapPin className="h-5 w-5 text-gray-400 mr-3 flex-shrink-0" />
                     <input
                       type="text"
                       placeholder="Location"
-                      className="w-32 bg-transparent border-none outline-none text-sm text-gray-900"
+                      className="w-full sm:w-32 bg-transparent border-none outline-none text-base sm:text-sm text-gray-900 min-h-[44px]"
                     />
                   </div>
-                  <Button className="ml-2 bg-emerald-600 hover:bg-emerald-700">Search</Button>
+                  <Button className="sm:ml-2 bg-emerald-600 hover:bg-emerald-700 w-full sm:w-auto min-h-[44px]">Search</Button>
                 </div>
               </motion.div>
 

@@ -1,17 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { auth } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth();
-
-    if (!session?.user) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
+    // Require VIEW_AUDIT_LOGS permission
+    const { authorized, response } = await requirePermission("VIEW_AUDIT_LOGS");
+    if (!authorized) return response!;
 
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page") || "1");

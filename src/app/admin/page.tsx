@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import AdminMobileNav from "./AdminMobileNav";
 
 export const dynamic = "force-dynamic";
 
@@ -95,12 +96,15 @@ export default async function AdminDashboard() {
                 </div>
               </Link>
             </div>
-            <nav className="flex items-center gap-6">
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center gap-6">
               <Link href="/admin" className="text-white font-medium">Dashboard</Link>
               <Link href="/admin/facilities" className="text-emerald-200 hover:text-white">Facilities</Link>
               <Link href="/admin/alerts" className="text-emerald-200 hover:text-white">Alerts</Link>
-              <Link href="/admin/reports" className="text-emerald-200 hover:text-white">Reports</Link>
+              <Link href="/admin/analytics" className="text-emerald-200 hover:text-white">Analytics</Link>
             </nav>
+            {/* Mobile Navigation */}
+            <AdminMobileNav />
           </div>
         </div>
       </header>

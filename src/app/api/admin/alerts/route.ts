@@ -1,17 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { auth } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 
 export async function GET() {
   try {
-    const session = await auth();
-
-    if (!session?.user) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
+    // Require MANAGE_ALERTS permission
+    const { authorized, response } = await requirePermission("MANAGE_ALERTS");
+    if (!authorized) return response!;
 
     const alerts = await db.alert.findMany({
       orderBy: { createdAt: "desc" },
@@ -35,14 +30,9 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth();
-
-    if (!session?.user) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
+    // Require MANAGE_ALERTS permission
+    const { authorized, user, response } = await requirePermission("MANAGE_ALERTS");
+    if (!authorized || !user) return response!;
 
     const body = await request.json();
     const { title, body: alertBody, severity, scope, precautions, smsMessage } = body;
@@ -51,13 +41,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: "Title, body, severity, and scope are required" },
         { status: 400 }
-      );
-    }
-
-    if (!session.user.id) {
-      return NextResponse.json(
-        { error: "User ID not found" },
-        { status: 401 }
       );
     }
 
@@ -71,14 +54,14 @@ export async function POST(request: NextRequest) {
         smsMessage: smsMessage || null,
         status: "DRAFT",
         channels: ["push", "sms", "portal"],
-        createdById: session.user.id,
+        createdById: user.id,
       },
     });
 
     // Create audit log
     await db.auditLog.create({
       data: {
-        userId: session.user.id,
+        userId: user.id,
         action: "ALERT_CREATED",
         entityType: "Alert",
         entityId: alert.id,

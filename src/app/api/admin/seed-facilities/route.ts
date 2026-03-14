@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { auth } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 
 // Greater Accra and Tema Healthcare Facilities
 const FACILITIES = [
@@ -2172,12 +2172,9 @@ type FacilityType = "HOSPITAL" | "CLINIC" | "PHARMACY" | "DIAGNOSTIC_CENTRE" | "
 
 export async function POST() {
   try {
-    const session = await auth();
-
-    // Allow seeding without auth for initial setup, or require admin
-    // if (session?.user?.role !== "MINISTRY_ADMIN") {
-    //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    // }
+    // Require SEED_DATA permission (SUPER_ADMIN only)
+    const { authorized, response } = await requirePermission("SEED_DATA");
+    if (!authorized) return response!;
 
     // Get or create Greater Accra region
     let greaterAccra = await db.region.findFirst({
