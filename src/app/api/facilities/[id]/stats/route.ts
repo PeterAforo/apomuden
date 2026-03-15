@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/lib/db";
 
 // GET /api/facilities/[id]/stats - Get facility visit statistics and top diagnoses
 export async function GET(
@@ -15,7 +15,7 @@ export async function GET(
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
     
     // Get visit statistics for the current month
-    const visitStats = await prisma.$queryRaw<{ total_visits: number }[]>`
+    const visitStats = await db.$queryRaw<{ total_visits: number }[]>`
       SELECT COALESCE(SUM(visit_count), 0)::int as total_visits
       FROM facility_visits
       WHERE facility_id = ${facilityId}::uuid
@@ -24,7 +24,7 @@ export async function GET(
     `;
     
     // Get top diagnoses from diagnosis reports
-    const topDiagnoses = await prisma.diagnosisReport.groupBy({
+    const topDiagnoses = await db.diagnosisReport.groupBy({
       by: ['diseaseCode', 'diseaseName'],
       where: {
         facilityId: facilityId,
