@@ -27,8 +27,9 @@ export default function FavoriteButton({ facilityId, variant = "button", classNa
         const isFav = data.favorites.some((f: { id: string }) => f.id === facilityId);
         setIsFavorite(isFav);
       }
-    } catch (error) {
-      console.error("Error checking favorite status:", error);
+      // 401 is expected for unauthenticated users - no need to log
+    } catch {
+      // Network error - silently fail for unauthenticated users
     } finally {
       setIsChecking(false);
     }
