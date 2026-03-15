@@ -7,7 +7,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { FacilityReviews } from "@/components/reviews";
 import { FavoriteButton } from "@/components/favorites";
-import { FacilityImageGallery, FacilityLocationMap, TierBadge, TierCard } from "@/components/facilities";
+import { FacilityImageGallery, FacilityLocationMap, TierBadge, TierCard, FacilityStats } from "@/components/facilities";
 import { 
   Phone, Mail, Globe, Clock, MapPin, Bed, Heart, 
   Stethoscope, Activity, Ambulance, Shield, Share2, 
@@ -213,6 +213,9 @@ export default async function FacilityDetailPage({ params }: PageProps) {
             {facility.tier && (
               <TierCard tier={facility.tier} />
             )}
+
+            {/* Facility Statistics */}
+            <FacilityStats facilityId={facility.id} />
 
             {/* Description */}
             {facility.description && (
