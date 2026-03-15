@@ -7,6 +7,12 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { FacilityReviews } from "@/components/reviews";
 import { FavoriteButton } from "@/components/favorites";
+import { FacilityImageGallery, FacilityLocationMap, TierBadge, TierCard } from "@/components/facilities";
+import { 
+  Phone, Mail, Globe, Clock, MapPin, Bed, Heart, 
+  Stethoscope, Activity, Ambulance, Shield, Share2, 
+  Printer, ChevronRight, CheckCircle2, XCircle
+} from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -43,6 +49,10 @@ function getTierStars(tier: string | null): number {
   return tierMap[tier] || 0;
 }
 
+function formatFacilityType(type: string): string {
+  return type.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+}
+
 export default async function FacilityDetailPage({ params }: PageProps) {
   const facility = await db.facility.findUnique({
     where: { slug: params.slug },
@@ -51,7 +61,7 @@ export default async function FacilityDetailPage({ params }: PageProps) {
       district: true,
       services: {
         where: { isActive: true },
-        take: 10,
+        take: 20,
       },
       reviews: {
         where: { status: "ACTIVE" },
@@ -71,6 +81,10 @@ export default async function FacilityDetailPage({ params }: PageProps) {
   }
 
   const operatingHours = facility.operatingHours as Record<string, { open: string; close: string }> | null;
+  const photos = (facility.photos as string[]) || [];
+  const amenities = (facility.amenities as string[]) || [];
+  const equipment = (facility.equipment as string[]) || [];
+  const specializations = (facility.specializations as string[]) || [];
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -81,49 +95,54 @@ export default async function FacilityDetailPage({ params }: PageProps) {
         <div className="container mx-auto px-4 py-4">
           <nav className="flex items-center gap-2 text-sm text-emerald-100 mb-6">
             <Link href="/" className="hover:text-white transition-colors">Home</Link>
-            <span className="text-emerald-300">/</span>
+            <ChevronRight className="w-4 h-4 text-emerald-300" />
             <Link href="/facilities" className="hover:text-white transition-colors">Facilities</Link>
-            <span className="text-emerald-300">/</span>
-            <span className="text-white font-medium">{facility.name}</span>
+            <ChevronRight className="w-4 h-4 text-emerald-300" />
+            <span className="text-white font-medium truncate max-w-[200px]">{facility.name}</span>
           </nav>
           
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 pb-6">
             <div>
-              <div className="flex items-center gap-3 mb-2">
+              <div className="flex flex-wrap items-center gap-3 mb-2">
                 <h1 className="text-2xl md:text-4xl font-bold">
                   {facility.name}
                 </h1>
-                {facility.tier && (
-                  <div className="flex items-center gap-1 bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full">
-                    <span className="text-yellow-300 font-bold">
-                      {getTierStars(facility.tier)}★
-                    </span>
-                  </div>
-                )}
+                <TierBadge tier={facility.tier} size="md" />
               </div>
-              <p className="text-emerald-100 text-lg">
-                {facility.type.replace("_", " ")} • {facility.region.name}
+              <p className="text-emerald-100 text-lg flex items-center gap-2">
+                <MapPin className="w-4 h-4" />
+                {formatFacilityType(facility.type)} • {facility.region.name}
               </p>
             </div>
             
             <div className="flex flex-wrap items-center gap-2">
               <FavoriteButton facilityId={facility.id} />
-              {facility.nhisAccepted && (
-                <span className="px-3 py-1.5 bg-white/20 backdrop-blur-sm text-white text-sm rounded-full font-medium border border-white/30">
-                  ✓ NHIS Accepted
-                </span>
-              )}
-              {facility.emergencyCapable && (
-                <span className="px-3 py-1.5 bg-red-500/80 backdrop-blur-sm text-white text-sm rounded-full font-medium">
-                  🚨 Emergency
-                </span>
-              )}
-              {facility.ambulanceAvailable && (
-                <span className="px-3 py-1.5 bg-blue-500/80 backdrop-blur-sm text-white text-sm rounded-full font-medium">
-                  🚑 Ambulance
-                </span>
-              )}
+              <button className="p-2 bg-white/20 backdrop-blur-sm rounded-full hover:bg-white/30 transition-colors" title="Share">
+                <Share2 className="w-5 h-5" />
+              </button>
+              <button className="p-2 bg-white/20 backdrop-blur-sm rounded-full hover:bg-white/30 transition-colors" title="Print">
+                <Printer className="w-5 h-5" />
+              </button>
             </div>
+          </div>
+
+          {/* Feature Badges */}
+          <div className="flex flex-wrap gap-2 pb-4">
+            {facility.nhisAccepted && (
+              <span className="px-3 py-1.5 bg-white/20 backdrop-blur-sm text-white text-sm rounded-full font-medium border border-white/30 flex items-center gap-1.5">
+                <Shield className="w-4 h-4" /> NHIS Accepted
+              </span>
+            )}
+            {facility.emergencyCapable && (
+              <span className="px-3 py-1.5 bg-red-500/80 backdrop-blur-sm text-white text-sm rounded-full font-medium flex items-center gap-1.5">
+                <Activity className="w-4 h-4" /> 24/7 Emergency
+              </span>
+            )}
+            {facility.ambulanceAvailable && (
+              <span className="px-3 py-1.5 bg-blue-500/80 backdrop-blur-sm text-white text-sm rounded-full font-medium flex items-center gap-1.5">
+                <Ambulance className="w-4 h-4" /> Ambulance Service
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -132,12 +151,19 @@ export default async function FacilityDetailPage({ params }: PageProps) {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
+            {/* Image Gallery */}
+            <Card className="shadow-lg border-0 overflow-hidden">
+              <CardContent className="p-4">
+                <FacilityImageGallery images={photos} facilityName={facility.name} />
+              </CardContent>
+            </Card>
+
             {/* Quick Stats Card */}
             <Card className="shadow-lg border-0 overflow-hidden">
               <div className="h-1 bg-gradient-to-r from-emerald-500 to-teal-500"></div>
               <CardContent className="p-6">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="text-center p-4 bg-gray-50 rounded-xl">
+                  <div className="text-center p-4 bg-gradient-to-br from-yellow-50 to-amber-50 rounded-xl border border-yellow-100">
                     <div className="flex items-center justify-center gap-1 text-2xl font-bold text-gray-900">
                       <span className="text-yellow-500">★</span>
                       {facility.averageRating.toFixed(1)}
@@ -145,52 +171,113 @@ export default async function FacilityDetailPage({ params }: PageProps) {
                     <p className="text-sm text-gray-500">{facility.totalReviews} reviews</p>
                   </div>
                   {facility.bedCount && (
-                    <div className="text-center p-4 bg-gray-50 rounded-xl">
-                      <div className="text-2xl font-bold text-gray-900">{facility.bedCount}</div>
+                    <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
+                      <div className="flex items-center justify-center gap-1">
+                        <Bed className="w-5 h-5 text-blue-500" />
+                        <span className="text-2xl font-bold text-gray-900">{facility.bedCount}</span>
+                      </div>
                       <p className="text-sm text-gray-500">Total Beds</p>
+                      {facility.availableBeds !== null && (
+                        <p className="text-xs text-emerald-600 font-medium mt-1">
+                          {facility.availableBeds} available
+                        </p>
+                      )}
                     </div>
                   )}
                   {facility.icuBedsAvailable && (
-                    <div className="text-center p-4 bg-gray-50 rounded-xl">
-                      <div className="text-2xl font-bold text-gray-900">{facility.icuBedsAvailable}</div>
+                    <div className="text-center p-4 bg-gradient-to-br from-red-50 to-pink-50 rounded-xl border border-red-100">
+                      <div className="flex items-center justify-center gap-1">
+                        <Heart className="w-5 h-5 text-red-500" />
+                        <span className="text-2xl font-bold text-gray-900">{facility.icuBedsAvailable}</span>
+                      </div>
                       <p className="text-sm text-gray-500">ICU Beds</p>
+                      {facility.availableIcuBeds !== null && (
+                        <p className="text-xs text-emerald-600 font-medium mt-1">
+                          {facility.availableIcuBeds} available
+                        </p>
+                      )}
                     </div>
                   )}
-                  <div className="text-center p-4 bg-emerald-50 rounded-xl">
-                    <div className="text-2xl font-bold text-emerald-600">Open</div>
-                    <p className="text-sm text-gray-500">Status</p>
+                  <div className="text-center p-4 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl border border-emerald-100">
+                    <div className="flex items-center justify-center gap-1">
+                      <Clock className="w-5 h-5 text-emerald-500" />
+                      <span className="text-2xl font-bold text-emerald-600">Open</span>
+                    </div>
+                    <p className="text-sm text-gray-500">24/7 Service</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
+            {/* Tier Information */}
+            {facility.tier && (
+              <TierCard tier={facility.tier} />
+            )}
+
             {/* Description */}
             {facility.description && (
-              <Card>
+              <Card className="shadow-md">
                 <CardHeader>
-                  <CardTitle>About</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <Stethoscope className="w-5 h-5 text-emerald-600" />
+                    About This Facility
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-700">{facility.description}</p>
+                  <p className="text-gray-700 leading-relaxed">{facility.description}</p>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Specializations */}
+            {specializations.length > 0 && (
+              <Card className="shadow-md">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Activity className="w-5 h-5 text-emerald-600" />
+                    Medical Specializations
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    {specializations.map((spec, index) => (
+                      <span
+                        key={index}
+                        className="px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-full text-sm font-medium border border-emerald-200"
+                      >
+                        {spec}
+                      </span>
+                    ))}
+                  </div>
                 </CardContent>
               </Card>
             )}
 
             {/* Services */}
             {facility.services.length > 0 && (
-              <Card>
+              <Card className="shadow-md">
                 <CardHeader>
-                  <CardTitle>Services Offered</CardTitle>
+                  <CardTitle className="flex items-center justify-between">
+                    <span className="flex items-center gap-2">
+                      <Stethoscope className="w-5 h-5 text-emerald-600" />
+                      Services & Pricing
+                    </span>
+                    <span className="text-sm font-normal text-gray-500">
+                      {facility.services.length} services
+                    </span>
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="grid md:grid-cols-2 gap-3">
                     {facility.services.map((service: FacilityService) => (
                       <div
                         key={service.id}
-                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                        className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors group"
                       >
                         <div>
-                          <p className="font-medium text-gray-900">{service.name}</p>
+                          <p className="font-medium text-gray-900 group-hover:text-emerald-700 transition-colors">
+                            {service.name}
+                          </p>
                           <p className="text-sm text-gray-500">{service.category}</p>
                         </div>
                         <div className="text-right">
@@ -198,9 +285,55 @@ export default async function FacilityDetailPage({ params }: PageProps) {
                             GH₵ {typeof service.priceGhs === 'object' ? service.priceGhs.toNumber().toFixed(2) : Number(service.priceGhs).toFixed(2)}
                           </p>
                           {service.nhisCovered !== "NO" && (
-                            <span className="text-xs text-green-600">NHIS</span>
+                            <span className="inline-flex items-center gap-1 text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
+                              <CheckCircle2 className="w-3 h-3" /> NHIS
+                            </span>
                           )}
                         </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Equipment */}
+            {equipment.length > 0 && (
+              <Card className="shadow-md">
+                <CardHeader>
+                  <CardTitle>Medical Equipment</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    {equipment.map((item, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center gap-2 p-2 bg-blue-50 rounded-lg text-sm text-blue-700"
+                      >
+                        <CheckCircle2 className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                        <span>{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Amenities */}
+            {amenities.length > 0 && (
+              <Card className="shadow-md">
+                <CardHeader>
+                  <CardTitle>Facilities & Amenities</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    {amenities.map((item, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center gap-2 p-2 bg-purple-50 rounded-lg text-sm text-purple-700"
+                      >
+                        <CheckCircle2 className="w-4 h-4 text-purple-500 flex-shrink-0" />
+                        <span>{item}</span>
                       </div>
                     ))}
                   </div>
@@ -215,43 +348,48 @@ export default async function FacilityDetailPage({ params }: PageProps) {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Contact Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Contact Information</CardTitle>
+            <Card className="shadow-lg sticky top-4">
+              <CardHeader className="bg-gradient-to-r from-emerald-50 to-teal-50 border-b">
+                <CardTitle className="flex items-center gap-2">
+                  <Phone className="w-5 h-5 text-emerald-600" />
+                  Contact Information
+                </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <p className="text-sm text-gray-500">Address</p>
-                  <p className="font-medium">{facility.address}</p>
-                  <p className="text-sm text-gray-600">
-                    {facility.district.name}, {facility.region.name}
-                  </p>
+              <CardContent className="space-y-4 pt-4">
+                <div className="flex items-start gap-3">
+                  <MapPin className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium text-gray-900">{facility.address}</p>
+                    <p className="text-sm text-gray-600">
+                      {facility.district.name}, {facility.region.name}
+                    </p>
+                  </div>
                 </div>
 
-                <div>
-                  <p className="text-sm text-gray-500">Phone</p>
-                  <a href={`tel:${facility.phone}`} className="font-medium text-emerald-600">
+                <div className="flex items-center gap-3">
+                  <Phone className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                  <a href={`tel:${facility.phone}`} className="font-medium text-emerald-600 hover:underline">
                     {facility.phone}
                   </a>
                 </div>
 
                 {facility.email && (
-                  <div>
-                    <p className="text-sm text-gray-500">Email</p>
-                    <a href={`mailto:${facility.email}`} className="font-medium text-emerald-600">
+                  <div className="flex items-center gap-3">
+                    <Mail className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                    <a href={`mailto:${facility.email}`} className="font-medium text-emerald-600 hover:underline truncate">
                       {facility.email}
                     </a>
                   </div>
                 )}
 
                 {facility.website && (
-                  <div>
-                    <p className="text-sm text-gray-500">Website</p>
+                  <div className="flex items-center gap-3">
+                    <Globe className="w-5 h-5 text-gray-400 flex-shrink-0" />
                     <a
                       href={facility.website}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="font-medium text-emerald-600"
+                      className="font-medium text-emerald-600 hover:underline"
                     >
                       Visit Website
                     </a>
@@ -259,21 +397,30 @@ export default async function FacilityDetailPage({ params }: PageProps) {
                 )}
 
                 <div className="pt-4 space-y-2">
-                  <Button className="w-full bg-emerald-600 hover:bg-emerald-700">
-                    Call Now
-                  </Button>
-                  <Button variant="outline" className="w-full">
-                    Get Directions
-                  </Button>
+                  <a href={`tel:${facility.phone}`}>
+                    <Button className="w-full bg-emerald-600 hover:bg-emerald-700 gap-2">
+                      <Phone className="w-4 h-4" />
+                      Call Now
+                    </Button>
+                  </a>
+                  {facility.emergencyCapable && (
+                    <Button variant="destructive" className="w-full gap-2">
+                      <Activity className="w-4 h-4" />
+                      Emergency Line
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
 
             {/* Operating Hours */}
             {operatingHours && (
-              <Card>
+              <Card className="shadow-md">
                 <CardHeader>
-                  <CardTitle>Operating Hours</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <Clock className="w-5 h-5 text-emerald-600" />
+                    Operating Hours
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
@@ -281,10 +428,18 @@ export default async function FacilityDetailPage({ params }: PageProps) {
                       (day) => {
                         const hours = operatingHours[day];
                         const isOpen = hours?.open && hours?.close;
+                        const isToday = new Date().toLocaleDateString("en-US", { weekday: "long" }).toLowerCase() === day;
                         return (
-                          <div key={day} className="flex justify-between text-sm">
-                            <span className="capitalize text-gray-600">{day}</span>
-                            <span className={isOpen ? "text-gray-900" : "text-gray-400"}>
+                          <div 
+                            key={day} 
+                            className={`flex justify-between text-sm p-2 rounded-lg ${
+                              isToday ? "bg-emerald-50 border border-emerald-200" : ""
+                            }`}
+                          >
+                            <span className={`capitalize ${isToday ? "font-semibold text-emerald-700" : "text-gray-600"}`}>
+                              {day} {isToday && <span className="text-xs">(Today)</span>}
+                            </span>
+                            <span className={isOpen ? (isToday ? "text-emerald-700 font-medium" : "text-gray-900") : "text-gray-400"}>
                               {isOpen ? `${hours.open} - ${hours.close}` : "Closed"}
                             </span>
                           </div>
@@ -296,31 +451,22 @@ export default async function FacilityDetailPage({ params }: PageProps) {
               </Card>
             )}
 
-            {/* Map */}
-            <Card>
+            {/* Interactive Map */}
+            <Card className="shadow-md overflow-hidden">
               <CardHeader>
-                <CardTitle>Location</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-emerald-600" />
+                  Location
+                </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="aspect-video bg-gray-200 rounded-lg flex items-center justify-center">
-                  <div className="text-center text-gray-500">
-                    <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center mx-auto mb-2">
-                      <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                    </div>
-                    <p className="text-sm text-gray-600">{facility.latitude.toFixed(4)}, {facility.longitude.toFixed(4)}</p>
-                    <a
-                      href={`https://www.google.com/maps?q=${facility.latitude},${facility.longitude}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-emerald-600 hover:underline mt-1 inline-block"
-                    >
-                      Open in Google Maps
-                    </a>
-                  </div>
-                </div>
+              <CardContent className="p-0">
+                <FacilityLocationMap
+                  latitude={facility.latitude}
+                  longitude={facility.longitude}
+                  facilityName={facility.name}
+                  facilityType={facility.type}
+                  address={facility.address}
+                />
               </CardContent>
             </Card>
           </div>
