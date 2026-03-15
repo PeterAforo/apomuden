@@ -5,6 +5,7 @@ import { Providers } from "@/components/providers";
 import { Toaster } from "@/components/ui/toaster";
 import KwasiChatbot from "@/components/chatbot/KwasiChatbot";
 import { PWAUpdateBanner, PWAInstallButton, NetworkStatusBanner } from "@/components/pwa";
+import { HealthAlertProvider } from "@/components/alerts";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -126,12 +127,14 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <Providers>
-          <PWAUpdateBanner />
-          <NetworkStatusBanner />
-          {children}
-          <Toaster />
-          <KwasiChatbot />
-          <PWAInstallButton />
+          <HealthAlertProvider>
+            <PWAUpdateBanner />
+            <NetworkStatusBanner />
+            {children}
+            <Toaster />
+            <KwasiChatbot />
+            <PWAInstallButton />
+          </HealthAlertProvider>
         </Providers>
         <script
           dangerouslySetInnerHTML={{
