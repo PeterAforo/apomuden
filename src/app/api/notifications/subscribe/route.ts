@@ -1,108 +1,70 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
+import { NextResponse, NextRequest } from "next/server";
+
+type PushSubscriptionJSON = {
+  endpoint: string;
+  expirationTime: number | null;
+  keys: {
+    p256dh: string;
+    auth: string;
+  };
+};
+
+// Demo in-memory store
+const subscriptions: PushSubscriptionJSON[] = (globalThis as any).__pushSubs ?? [];
+(globalThis as any).__pushSubs = subscriptions;
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth();
-    
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Authentication required" },
-        { status: 401 }
-      );
-    }
+    const subscription = (await request.json()) as PushSubscriptionJSON;
 
-    const body = await request.json();
-    const { subscription } = body;
-
-    if (!subscription || !subscription.endpoint) {
+    if (!subscription?.endpoint || !subscription?.keys?.p256dh || !subscription?.keys?.auth) {
       return NextResponse.json(
-        { error: "Invalid subscription data" },
+        { success: false, message: "Invalid subscription payload." },
         { status: 400 }
       );
     }
 
-    // Extract keys from subscription
-    const { endpoint, keys } = subscription;
-    const p256dh = keys?.p256dh || "";
-    const auth_key = keys?.auth || "";
+    const exists = subscriptions.some((sub) => sub.endpoint === subscription.endpoint);
 
-    // Check if subscription already exists
-    const existingSubscription = await db.pushSubscription.findUnique({
-      where: { endpoint },
-    });
-
-    if (existingSubscription) {
-      // Update existing subscription
-      await db.pushSubscription.update({
-        where: { endpoint },
-        data: {
-          userId: session.user.id,
-          p256dh,
-          auth: auth_key,
-          userAgent: request.headers.get("user-agent") || undefined,
-          updatedAt: new Date(),
-        },
-      });
-    } else {
-      // Create new subscription
-      await db.pushSubscription.create({
-        data: {
-          userId: session.user.id,
-          endpoint,
-          p256dh,
-          auth: auth_key,
-          userAgent: request.headers.get("user-agent") || undefined,
-        },
-      });
+    if (!exists) {
+      subscriptions.push(subscription);
     }
-
-    console.log("[Push] Subscription saved for user:", session.user.id);
 
     return NextResponse.json({
       success: true,
-      message: "Push subscription saved successfully",
+      message: "Subscription saved.",
+      count: subscriptions.length,
     });
-  } catch (error) {
-    console.error("[Push] Error saving subscription:", error);
+  } catch {
     return NextResponse.json(
-      { error: "Failed to save subscription" },
+      { success: false, message: "Failed to save subscription." },
       { status: 500 }
     );
   }
 }
 
+// GET - Check subscription status
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth();
-    
-    if (!session?.user?.id) {
+    const { searchParams } = new URL(request.url);
+    const endpoint = searchParams.get("endpoint");
+
+    if (!endpoint) {
       return NextResponse.json(
-        { error: "Authentication required" },
-        { status: 401 }
+        { success: false, message: "Endpoint required" },
+        { status: 400 }
       );
     }
 
-    const subscriptions = await db.pushSubscription.findMany({
-      where: { userId: session.user.id },
-      select: {
-        id: true,
-        endpoint: true,
-        createdAt: true,
-        userAgent: true,
-      },
-    });
+    const exists = subscriptions.some((sub) => sub.endpoint === endpoint);
 
     return NextResponse.json({
-      success: true,
-      subscriptions,
+      subscribed: exists,
       count: subscriptions.length,
     });
-  } catch (error) {
-    console.error("[Push] Error fetching subscriptions:", error);
+  } catch {
     return NextResponse.json(
-      { error: "Failed to fetch subscriptions" },
+      { success: false, message: "Failed to check subscription status" },
       { status: 500 }
     );
   }
