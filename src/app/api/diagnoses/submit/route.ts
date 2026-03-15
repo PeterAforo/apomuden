@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     // Check if user has facility admin role
     const user = await db.user.findUnique({
       where: { id: session.user.id },
-      select: { role: true, facilityId: true },
+      select: { role: true },
     });
 
     if (!user || !["FACILITY_ADMIN", "ADMIN"].includes(user.role)) {
@@ -31,34 +31,42 @@ export async function POST(request: NextRequest) {
     const { 
       diseaseCode, 
       diseaseName, 
-      patientAge, 
-      patientGender,
+      caseCount,
+      periodStart,
+      periodEnd,
+      periodType,
+      demographics,
       severity,
-      outcome,
-      district,
-      region,
+      outcomes,
       facilityId 
     } = body;
 
-    // Create diagnosis report
+    if (!facilityId || !diseaseCode || !diseaseName) {
+      return NextResponse.json(
+        { error: "Missing required fields: facilityId, diseaseCode, diseaseName" },
+        { status: 400 }
+      );
+    }
+
+    // Create diagnosis report matching the schema
     const report = await db.diagnosisReport.create({
       data: {
+        facilityId,
         diseaseCode,
         diseaseName,
-        patientAge,
-        patientGender,
-        severity: severity || "MODERATE",
-        outcome: outcome || "ONGOING",
-        district,
-        region,
-        facilityId: facilityId || user.facilityId,
-        reportedById: session.user.id,
-        reportedAt: new Date(),
+        caseCount: caseCount || 1,
+        periodStart: periodStart ? new Date(periodStart) : new Date(),
+        periodEnd: periodEnd ? new Date(periodEnd) : new Date(),
+        periodType: periodType || "DAILY",
+        demographics: demographics || null,
+        severity: severity || null,
+        outcomes: outcomes || null,
+        submittedById: session.user.id,
       },
     });
 
     // Trigger epidemic analysis (async)
-    analyzeForEpidemic(diseaseName, district, region).catch(console.error);
+    analyzeForEpidemic(diseaseName, facilityId).catch(console.error);
 
     return NextResponse.json({
       success: true,
@@ -75,129 +83,59 @@ export async function POST(request: NextRequest) {
 }
 
 // Analyze diagnosis data for potential epidemic/pandemic
-async function analyzeForEpidemic(diseaseName: string, district: string, region: string) {
+async function analyzeForEpidemic(diseaseName: string, facilityId: string) {
   try {
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-    // Count cases in the last 30 days for this disease in the region
-    const totalCases = await db.diagnosisReport.count({
+    // Count cases in the last 30 days for this disease
+    const totalReports = await db.diagnosisReport.findMany({
       where: {
         diseaseName,
-        region,
-        reportedAt: { gte: thirtyDaysAgo },
+        createdAt: { gte: thirtyDaysAgo },
       },
+      select: { caseCount: true, createdAt: true },
     });
 
+    const totalCases = totalReports.reduce((sum, r) => sum + r.caseCount, 0);
+    
     // Count cases in the last 7 days
-    const recentCases = await db.diagnosisReport.count({
-      where: {
-        diseaseName,
-        region,
-        reportedAt: { gte: sevenDaysAgo },
-      },
-    });
+    const recentReports = totalReports.filter(r => r.createdAt >= sevenDaysAgo);
+    const recentCases = recentReports.reduce((sum, r) => sum + r.caseCount, 0);
 
     // Calculate trend (is it increasing?)
     const previousWeekCases = totalCases - recentCases;
     const growthRate = previousWeekCases > 0 ? (recentCases / previousWeekCases) : recentCases;
 
     // Determine alert level
-    let alertLevel: "WATCH" | "EPIDEMIC" | "PANDEMIC" | null = null;
-    let severity: "INFO" | "WARNING" | "CRITICAL" = "INFO";
+    let alertLevel: "REGIONAL" | "NATIONAL" | null = null;
+    let severityLevel: "INFO" | "WARNING" | "CRITICAL" = "INFO";
 
     if (recentCases >= 100 && growthRate >= 2) {
-      alertLevel = "PANDEMIC";
-      severity = "CRITICAL";
+      alertLevel = "NATIONAL";
+      severityLevel = "CRITICAL";
     } else if (recentCases >= 50 && growthRate >= 1.5) {
-      alertLevel = "EPIDEMIC";
-      severity = "WARNING";
-    } else if (recentCases >= 20 && growthRate >= 1.2) {
-      alertLevel = "WATCH";
-      severity = "INFO";
+      alertLevel = "REGIONAL";
+      severityLevel = "WARNING";
     }
 
     if (alertLevel) {
       // Check if similar alert already exists
       const existingAlert = await db.alert.findFirst({
         where: {
-          type: alertLevel,
-          targetRegion: region,
-          isActive: true,
+          scope: alertLevel,
+          diseaseCode: diseaseName,
           createdAt: { gte: sevenDaysAgo },
         },
       });
 
       if (!existingAlert) {
-        // Create AI-generated alert recommendation for ministry review
-        await db.alert.create({
-          data: {
-            title: `${alertLevel}: ${diseaseName} in ${region}`,
-            message: `AI Analysis: ${recentCases} cases of ${diseaseName} reported in ${region} over the past 7 days. Growth rate: ${(growthRate * 100).toFixed(0)}%. Recommend ministry review.`,
-            type: alertLevel,
-            severity,
-            targetRegion: region,
-            isActive: alertLevel === "WATCH" ? false : true, // Watch alerts need ministry approval
-            recommendations: generateRecommendations(diseaseName, alertLevel),
-            metadata: {
-              diseaseName,
-              totalCases,
-              recentCases,
-              growthRate,
-              analysisDate: new Date().toISOString(),
-              requiresApproval: alertLevel === "WATCH",
-            },
-          },
-        });
-
-        console.log(`[AI Analysis] Created ${alertLevel} alert for ${diseaseName} in ${region}`);
+        console.log(`[AI Analysis] Would create ${alertLevel} alert for ${diseaseName} - ${recentCases} cases, growth rate: ${(growthRate * 100).toFixed(0)}%`);
+        // Alert creation would require a createdById which needs admin user
+        // This is logged for now, actual alert creation should be done by ministry
       }
     }
   } catch (error) {
     console.error("[AI Analysis] Error analyzing epidemic data:", error);
   }
-}
-
-function generateRecommendations(diseaseName: string, alertLevel: string): string[] {
-  const baseRecommendations = [
-    "Seek medical attention if you experience symptoms",
-    "Practice good hygiene and wash hands frequently",
-    "Follow guidelines from local health authorities",
-  ];
-
-  const diseaseSpecific: Record<string, string[]> = {
-    "Cholera": [
-      "Drink only boiled or treated water",
-      "Avoid raw or undercooked seafood",
-      "Use proper sanitation facilities",
-    ],
-    "Malaria": [
-      "Sleep under insecticide-treated mosquito nets",
-      "Use mosquito repellent",
-      "Eliminate stagnant water around your home",
-    ],
-    "COVID-19": [
-      "Wear masks in crowded places",
-      "Maintain social distancing",
-      "Get vaccinated if eligible",
-    ],
-    "Typhoid": [
-      "Drink only safe, treated water",
-      "Avoid street food",
-      "Ensure food is thoroughly cooked",
-    ],
-  };
-
-  const specific = diseaseSpecific[diseaseName] || [];
-  
-  if (alertLevel === "PANDEMIC") {
-    return [
-      "URGENT: Avoid non-essential travel",
-      "Stay home if you feel unwell",
-      ...specific,
-      ...baseRecommendations,
-    ];
-  }
-
-  return [...specific, ...baseRecommendations];
 }
