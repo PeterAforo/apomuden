@@ -1,4 +1,4 @@
-import { PrismaClient, FacilityType, FacilityTier, FacilityStatus, UserRole } from "@prisma/client";
+import { PrismaClient, FacilityType, FacilityTier, FacilityStatus, UserRole, NHISCoverage } from "@prisma/client";
 import { hash } from "bcryptjs";
 
 const prisma = new PrismaClient();
@@ -61,6 +61,169 @@ const serviceTaxonomy = [
   { name: "Nutrition Counseling", category: "Nutrition", standardCode: "NT001" },
   { name: "Health Education", category: "Preventive", standardCode: "HE001" },
 ];
+
+// Hospital photos by tier (using Unsplash for demo)
+const hospitalPhotos = {
+  tier5: [
+    "https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=800",
+    "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=800",
+    "https://images.unsplash.com/photo-1538108149393-fbbd81895907?w=800",
+  ],
+  tier4: [
+    "https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?w=800",
+    "https://images.unsplash.com/photo-1516549655169-df83a0774514?w=800",
+  ],
+  tier3: [
+    "https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=800",
+    "https://images.unsplash.com/photo-1551076805-e1869033e561?w=800",
+  ],
+  tier2: [
+    "https://images.unsplash.com/photo-1632833239869-a37e3a5806d2?w=800",
+  ],
+  tier1: [
+    "https://images.unsplash.com/photo-1666214280557-f1b5022eb634?w=800",
+  ],
+};
+
+// Equipment by tier
+const equipmentByTier = {
+  tier5: [
+    "MRI Scanner", "CT Scanner", "Digital X-Ray", "Ultrasound", "ECG Machine",
+    "Ventilators", "Defibrillators", "Patient Monitors", "Anesthesia Machines",
+    "Dialysis Machines", "Endoscopy Equipment", "Laparoscopic Surgery Equipment",
+    "Mammography", "Bone Densitometer", "PET Scanner", "Linear Accelerator",
+    "Robotic Surgery System", "ECMO Machine", "Cardiac Catheterization Lab"
+  ],
+  tier4: [
+    "CT Scanner", "Digital X-Ray", "Ultrasound", "ECG Machine", "Ventilators",
+    "Defibrillators", "Patient Monitors", "Anesthesia Machines", "Dialysis Machines",
+    "Endoscopy Equipment", "Laparoscopic Surgery Equipment", "Mammography"
+  ],
+  tier3: [
+    "Digital X-Ray", "Ultrasound", "ECG Machine", "Ventilators", "Defibrillators",
+    "Patient Monitors", "Anesthesia Machines", "Basic Lab Equipment"
+  ],
+  tier2: [
+    "X-Ray", "Ultrasound", "ECG Machine", "Basic Ventilator", "Defibrillator",
+    "Patient Monitors", "Basic Lab Equipment"
+  ],
+  tier1: [
+    "Basic X-Ray", "Ultrasound", "ECG Machine", "Basic Lab Equipment"
+  ],
+};
+
+// Amenities by tier
+const amenitiesByTier = {
+  tier5: [
+    "24/7 Pharmacy", "Cafeteria", "Private Rooms", "VIP Suites", "Free WiFi",
+    "Parking", "Helipad", "Chapel", "ATM", "Gift Shop", "Waiting Lounge",
+    "Air Conditioning", "Generator Backup", "Wheelchair Access", "Elevator",
+    "Blood Bank", "Mortuary", "Ambulance Bay", "Conference Rooms"
+  ],
+  tier4: [
+    "24/7 Pharmacy", "Cafeteria", "Private Rooms", "Free WiFi", "Parking",
+    "Waiting Lounge", "Air Conditioning", "Generator Backup", "Wheelchair Access",
+    "Elevator", "Blood Bank", "Mortuary", "Ambulance Bay"
+  ],
+  tier3: [
+    "Pharmacy", "Canteen", "Semi-Private Rooms", "Parking", "Waiting Area",
+    "Generator Backup", "Wheelchair Access", "Blood Bank", "Mortuary"
+  ],
+  tier2: [
+    "Pharmacy", "Canteen", "Waiting Area", "Generator Backup", "Wheelchair Access"
+  ],
+  tier1: [
+    "Pharmacy", "Waiting Area", "Basic Amenities"
+  ],
+};
+
+// Specializations by tier
+const specializationsByTier = {
+  tier5: [
+    "Cardiology", "Neurology", "Oncology", "Orthopedics", "Pediatrics",
+    "Obstetrics & Gynecology", "General Surgery", "Plastic Surgery",
+    "Urology", "Nephrology", "Gastroenterology", "Pulmonology",
+    "Endocrinology", "Rheumatology", "Dermatology", "Ophthalmology",
+    "ENT", "Psychiatry", "Emergency Medicine", "Intensive Care"
+  ],
+  tier4: [
+    "Cardiology", "Orthopedics", "Pediatrics", "Obstetrics & Gynecology",
+    "General Surgery", "Urology", "Gastroenterology", "Pulmonology",
+    "Dermatology", "Ophthalmology", "ENT", "Emergency Medicine", "Intensive Care"
+  ],
+  tier3: [
+    "General Medicine", "Pediatrics", "Obstetrics & Gynecology", "General Surgery",
+    "Orthopedics", "Ophthalmology", "ENT", "Emergency Medicine"
+  ],
+  tier2: [
+    "General Medicine", "Pediatrics", "Obstetrics & Gynecology", "Minor Surgery"
+  ],
+  tier1: [
+    "General Medicine", "Basic Pediatrics", "Maternal Health"
+  ],
+};
+
+// Service pricing templates by tier (in GHS)
+const servicePricingByTier = {
+  tier5: {
+    "General Consultation": { price: 150, nhis: NHISCoverage.YES, copay: 20 },
+    "Emergency Care": { price: 500, nhis: NHISCoverage.YES, copay: 50 },
+    "Laboratory Tests": { price: 200, nhis: NHISCoverage.PARTIAL, copay: 80 },
+    "X-Ray": { price: 250, nhis: NHISCoverage.PARTIAL, copay: 100 },
+    "Ultrasound": { price: 300, nhis: NHISCoverage.PARTIAL, copay: 120 },
+    "CT Scan": { price: 1500, nhis: NHISCoverage.NO, copay: null },
+    "MRI": { price: 2500, nhis: NHISCoverage.NO, copay: null },
+    "Maternity Care": { price: 800, nhis: NHISCoverage.YES, copay: 100 },
+    "Delivery Services": { price: 3000, nhis: NHISCoverage.YES, copay: 200 },
+    "Minor Surgery": { price: 2000, nhis: NHISCoverage.PARTIAL, copay: 500 },
+    "Major Surgery": { price: 15000, nhis: NHISCoverage.PARTIAL, copay: 3000 },
+    "ICU Per Day": { price: 5000, nhis: NHISCoverage.PARTIAL, copay: 1000 },
+    "Ward Per Day": { price: 500, nhis: NHISCoverage.YES, copay: 50 },
+    "Private Room Per Day": { price: 1500, nhis: NHISCoverage.NO, copay: null },
+  },
+  tier4: {
+    "General Consultation": { price: 100, nhis: NHISCoverage.YES, copay: 15 },
+    "Emergency Care": { price: 350, nhis: NHISCoverage.YES, copay: 40 },
+    "Laboratory Tests": { price: 150, nhis: NHISCoverage.PARTIAL, copay: 60 },
+    "X-Ray": { price: 180, nhis: NHISCoverage.PARTIAL, copay: 70 },
+    "Ultrasound": { price: 220, nhis: NHISCoverage.PARTIAL, copay: 90 },
+    "CT Scan": { price: 1200, nhis: NHISCoverage.NO, copay: null },
+    "Maternity Care": { price: 600, nhis: NHISCoverage.YES, copay: 80 },
+    "Delivery Services": { price: 2000, nhis: NHISCoverage.YES, copay: 150 },
+    "Minor Surgery": { price: 1500, nhis: NHISCoverage.PARTIAL, copay: 400 },
+    "Major Surgery": { price: 10000, nhis: NHISCoverage.PARTIAL, copay: 2000 },
+    "ICU Per Day": { price: 3500, nhis: NHISCoverage.PARTIAL, copay: 700 },
+    "Ward Per Day": { price: 350, nhis: NHISCoverage.YES, copay: 35 },
+  },
+  tier3: {
+    "General Consultation": { price: 60, nhis: NHISCoverage.YES, copay: 10 },
+    "Emergency Care": { price: 200, nhis: NHISCoverage.YES, copay: 25 },
+    "Laboratory Tests": { price: 100, nhis: NHISCoverage.YES, copay: 30 },
+    "X-Ray": { price: 120, nhis: NHISCoverage.YES, copay: 40 },
+    "Ultrasound": { price: 150, nhis: NHISCoverage.PARTIAL, copay: 60 },
+    "Maternity Care": { price: 400, nhis: NHISCoverage.YES, copay: 50 },
+    "Delivery Services": { price: 1200, nhis: NHISCoverage.YES, copay: 100 },
+    "Minor Surgery": { price: 800, nhis: NHISCoverage.YES, copay: 150 },
+    "ICU Per Day": { price: 2000, nhis: NHISCoverage.PARTIAL, copay: 400 },
+    "Ward Per Day": { price: 200, nhis: NHISCoverage.YES, copay: 20 },
+  },
+  tier2: {
+    "General Consultation": { price: 40, nhis: NHISCoverage.YES, copay: 5 },
+    "Emergency Care": { price: 120, nhis: NHISCoverage.YES, copay: 15 },
+    "Laboratory Tests": { price: 70, nhis: NHISCoverage.YES, copay: 20 },
+    "X-Ray": { price: 80, nhis: NHISCoverage.YES, copay: 25 },
+    "Ultrasound": { price: 100, nhis: NHISCoverage.YES, copay: 35 },
+    "Maternity Care": { price: 250, nhis: NHISCoverage.YES, copay: 30 },
+    "Delivery Services": { price: 800, nhis: NHISCoverage.YES, copay: 60 },
+    "Ward Per Day": { price: 120, nhis: NHISCoverage.YES, copay: 10 },
+  },
+  tier1: {
+    "General Consultation": { price: 25, nhis: NHISCoverage.YES, copay: 0 },
+    "Laboratory Tests": { price: 50, nhis: NHISCoverage.YES, copay: 10 },
+    "Maternity Care": { price: 150, nhis: NHISCoverage.YES, copay: 15 },
+    "Delivery Services": { price: 500, nhis: NHISCoverage.YES, copay: 30 },
+  },
+};
 
 async function main() {
   console.log("🌱 Starting database seed...");
@@ -278,6 +441,26 @@ async function main() {
     }
   }
 
+  // Helper function to get tier key
+  const getTierKey = (tier: FacilityTier): string => {
+    switch (tier) {
+      case FacilityTier.FIVE_STAR: return "tier5";
+      case FacilityTier.FOUR_STAR: return "tier4";
+      case FacilityTier.THREE_STAR: return "tier3";
+      case FacilityTier.TWO_STAR: return "tier2";
+      case FacilityTier.ONE_STAR: return "tier1";
+      default: return "tier3";
+    }
+  };
+
+  // Helper function to calculate available beds (random 60-90% of total)
+  const getAvailableBeds = (total: number): number => {
+    const occupancyRate = 0.6 + Math.random() * 0.3; // 60-90% occupied
+    return Math.floor(total * (1 - occupancyRate));
+  };
+
+  const createdFacilityIds: string[] = [];
+
   for (let i = 0; i < facilities.length; i++) {
     const f = facilities[i];
     const regionId = regionMap[f.regionCode];
@@ -294,11 +477,34 @@ async function main() {
     }
 
     const slug = f.name.toLowerCase().replace(/[^\w\s-]/g, "").replace(/[\s_-]+/g, "-");
-    const license = `GHS-HOS-${String(i + 1).padStart(5, "0")}`;
+    const license = `GHS-${f.type.substring(0, 3)}-${f.regionCode}-${String(i + 1).padStart(4, "0")}`;
+    const tierKey = getTierKey(f.tier);
+    
+    // Get tier-specific data
+    const photos = hospitalPhotos[tierKey as keyof typeof hospitalPhotos] || [];
+    const equipment = equipmentByTier[tierKey as keyof typeof equipmentByTier] || [];
+    const amenities = amenitiesByTier[tierKey as keyof typeof amenitiesByTier] || [];
+    const specializations = specializationsByTier[tierKey as keyof typeof specializationsByTier] || [];
+    
+    // Calculate available beds
+    const availableBeds = getAvailableBeds(f.beds);
+    const availableIcuBeds = f.icu > 0 ? Math.max(1, Math.floor(f.icu * (0.2 + Math.random() * 0.4))) : 0;
 
-    await prisma.facility.upsert({
+    const facility = await prisma.facility.upsert({
       where: { slug },
-      update: {},
+      update: {
+        licenseNumber: license,
+        latitude: f.lat,
+        longitude: f.lng,
+        phone: f.phone,
+        description: f.desc,
+        availableBeds,
+        availableIcuBeds,
+        photos,
+        equipment,
+        amenities,
+        specializations,
+      },
       create: {
         name: f.name,
         slug,
@@ -313,13 +519,21 @@ async function main() {
         regionId,
         districtId,
         phone: f.phone,
+        email: `info@${slug.substring(0, 20)}.gh`,
+        website: `https://www.${slug.substring(0, 20)}.gh`,
         nhisAccepted: f.nhis,
         emergencyCapable: f.emergency,
         ambulanceAvailable: f.ambulance,
         bedCount: f.beds,
         icuBedsAvailable: f.icu,
+        availableBeds,
+        availableIcuBeds,
+        photos,
+        equipment,
+        amenities,
+        specializations,
         description: f.desc,
-        averageRating: 4.0 + Math.random(),
+        averageRating: 3.5 + Math.random() * 1.5,
         totalReviews: Math.floor(Math.random() * 500) + 50,
         verifiedAt: new Date(),
         operatingHours: {
@@ -333,10 +547,109 @@ async function main() {
         },
       },
     });
+    
+    createdFacilityIds.push(facility.id);
   }
   console.log(`✅ Seeded ${facilities.length} healthcare facilities`);
 
+  // Seed services for each facility
+  console.log("💊 Seeding facility services and pricing...");
+  let servicesCount = 0;
+  
+  for (let i = 0; i < facilities.length; i++) {
+    const f = facilities[i];
+    const facilityId = createdFacilityIds[i];
+    if (!facilityId) continue;
+    
+    const tierKey = getTierKey(f.tier);
+    const pricing = servicePricingByTier[tierKey as keyof typeof servicePricingByTier] || {};
+    
+    // Delete existing services for this facility
+    await prisma.service.deleteMany({ where: { facilityId } });
+    
+    // Create services based on tier pricing
+    for (const [serviceName, priceInfo] of Object.entries(pricing)) {
+      await prisma.service.create({
+        data: {
+          facilityId,
+          name: serviceName,
+          category: getServiceCategory(serviceName),
+          description: `${serviceName} services at ${f.name}`,
+          priceGhs: priceInfo.price,
+          nhisCovered: priceInfo.nhis,
+          nhisCopayGhs: priceInfo.copay,
+          durationMinutes: getServiceDuration(serviceName),
+          department: getServiceDepartment(serviceName),
+          isActive: true,
+        },
+      });
+      servicesCount++;
+    }
+  }
+  console.log(`✅ Seeded ${servicesCount} services across all facilities`);
+
   console.log("🎉 Database seed completed!");
+}
+
+// Helper functions for service categorization
+function getServiceCategory(serviceName: string): string {
+  const categories: Record<string, string> = {
+    "General Consultation": "General",
+    "Emergency Care": "Emergency",
+    "Laboratory Tests": "Diagnostics",
+    "X-Ray": "Imaging",
+    "Ultrasound": "Imaging",
+    "CT Scan": "Imaging",
+    "MRI": "Imaging",
+    "Maternity Care": "Maternity",
+    "Delivery Services": "Maternity",
+    "Minor Surgery": "Surgery",
+    "Major Surgery": "Surgery",
+    "ICU Per Day": "Intensive Care",
+    "Ward Per Day": "Inpatient",
+    "Private Room Per Day": "Inpatient",
+  };
+  return categories[serviceName] || "General";
+}
+
+function getServiceDuration(serviceName: string): number {
+  const durations: Record<string, number> = {
+    "General Consultation": 30,
+    "Emergency Care": 60,
+    "Laboratory Tests": 45,
+    "X-Ray": 20,
+    "Ultrasound": 30,
+    "CT Scan": 45,
+    "MRI": 60,
+    "Maternity Care": 60,
+    "Delivery Services": 480,
+    "Minor Surgery": 120,
+    "Major Surgery": 240,
+    "ICU Per Day": 1440,
+    "Ward Per Day": 1440,
+    "Private Room Per Day": 1440,
+  };
+  return durations[serviceName] || 30;
+}
+
+function getServiceDepartment(serviceName: string): string {
+  const departments: Record<string, string> = {
+    "General Consultation": "Outpatient",
+    "Emergency Care": "Emergency",
+    "Laboratory Tests": "Laboratory",
+    "X-Ray": "Radiology",
+    "Ultrasound": "Radiology",
+    "CT Scan": "Radiology",
+    "MRI": "Radiology",
+    "Maternity Care": "Obstetrics & Gynecology",
+    "Delivery Services": "Obstetrics & Gynecology",
+    "Minor Surgery": "Surgery",
+    "Major Surgery": "Surgery",
+    "ICU Per Day": "Intensive Care Unit",
+    "Ward Per Day": "Inpatient",
+    "Private Room Per Day": "Inpatient",
+  };
+  return departments[serviceName] || "General";
 }
 
 main()
