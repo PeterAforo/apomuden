@@ -2,12 +2,15 @@ import webpush from "web-push";
 
 const vapidPublicKey = process.env.VAPID_PUBLIC_KEY;
 const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
-const vapidSubject = process.env.VAPID_SUBJECT;
+let vapidSubject = process.env.VAPID_SUBJECT || "mailto:admin@apomuden.gov.gh";
 
-if (!vapidPublicKey || !vapidPrivateKey || !vapidSubject) {
-  throw new Error("Missing VAPID environment variables.");
+// Ensure vapidSubject is a valid mailto: URL
+if (vapidSubject && !vapidSubject.startsWith("mailto:")) {
+  vapidSubject = `mailto:${vapidSubject}`;
 }
 
-webpush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey);
+if (vapidPublicKey && vapidPrivateKey && vapidSubject) {
+  webpush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey);
+}
 
 export default webpush;
