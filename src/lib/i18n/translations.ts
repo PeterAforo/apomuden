@@ -15,9 +15,11 @@ export const translations: Record<Language, Record<string, string>> = {
   en: {
     // Navigation
     'nav.home': 'Home',
-    'nav.facilities': 'Facilities',
+    'nav.facilities': 'Find Facilities',
+    'nav.ambulance': 'Ambulance',
     'nav.emergency': 'Emergency',
-    'nav.alerts': 'Alerts',
+    'nav.alerts': 'Health Alerts',
+    'nav.news': 'News',
     'nav.compare': 'Compare',
     'nav.about': 'About',
     'nav.login': 'Sign In',
@@ -117,9 +119,11 @@ export const translations: Record<Language, Record<string, string>> = {
   tw: {
     // Navigation
     'nav.home': 'Fie',
-    'nav.facilities': 'Ayaresabea',
+    'nav.facilities': 'Hu Ayaresabea',
+    'nav.ambulance': 'Ambulance',
     'nav.emergency': 'Ntɛm Mmoa',
-    'nav.alerts': 'Kɔkɔbɔ',
+    'nav.alerts': 'Apɔmuden Kɔkɔbɔ',
+    'nav.news': 'Nsɛm',
     'nav.compare': 'Fa Toto',
     'nav.about': 'Fa Ho',
     'nav.login': 'Bra Mu',
@@ -219,9 +223,11 @@ export const translations: Record<Language, Record<string, string>> = {
   ga: {
     // Navigation
     'nav.home': 'Shia',
-    'nav.facilities': 'Duŋ Shishi',
+    'nav.facilities': 'Fɛɛ Duŋ Shishi',
+    'nav.ambulance': 'Ambulance',
     'nav.emergency': 'Gbɛkɛ Bɔ',
-    'nav.alerts': 'Kɛha',
+    'nav.alerts': 'Hewale Kɛha',
+    'nav.news': 'Tsɔɔmɔ',
     'nav.compare': 'Tso Shi',
     'nav.about': 'Shi Mli',
     'nav.login': 'Ba Mli',
@@ -269,9 +275,11 @@ export const translations: Record<Language, Record<string, string>> = {
   ee: {
     // Navigation
     'nav.home': 'Aƒe',
-    'nav.facilities': 'Atikewɔƒe',
+    'nav.facilities': 'Di Atikewɔƒe',
+    'nav.ambulance': 'Ambulance',
     'nav.emergency': 'Kpekpe',
-    'nav.alerts': 'Nyatsɔtsɔ',
+    'nav.alerts': 'Lãme Nyatsɔtsɔ',
+    'nav.news': 'Nyatakaka',
     'nav.compare': 'Sɔ',
     'nav.about': 'Tso Eŋu',
     'nav.login': 'Ge Eme',
@@ -319,9 +327,11 @@ export const translations: Record<Language, Record<string, string>> = {
   ha: {
     // Navigation
     'nav.home': 'Gida',
-    'nav.facilities': 'Asibitoci',
+    'nav.facilities': 'Nemo Asibitoci',
+    'nav.ambulance': 'Motar Asibiti',
     'nav.emergency': 'Gaggawa',
-    'nav.alerts': 'Sanarwa',
+    'nav.alerts': 'Sanarwar Lafiya',
+    'nav.news': 'Labarai',
     'nav.compare': 'Kwatanta',
     'nav.about': 'Game Da',
     'nav.login': 'Shiga',

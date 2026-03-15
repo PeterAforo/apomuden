@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Phone, Menu, X, Bell, Heart } from "lucide-react";
 import { LanguageSwitcher } from "@/components/language";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface NavbarProps {
   onNotificationClick?: () => void;
@@ -14,16 +15,17 @@ interface NavbarProps {
 }
 
 const NAV_LINKS = [
-  { href: "/facilities", label: "Find Facilities" },
-  { href: "/ambulance", label: "Ambulance" },
-  { href: "/alerts", label: "Health Alerts" },
-  { href: "/news", label: "News" },
-  { href: "/about", label: "About" },
+  { href: "/facilities", labelKey: "nav.facilities" },
+  { href: "/ambulance", labelKey: "nav.ambulance" },
+  { href: "/alerts", labelKey: "nav.alerts" },
+  { href: "/news", labelKey: "nav.news" },
+  { href: "/about", labelKey: "nav.about" },
 ];
 
 export default function Navbar({ onNotificationClick, notificationsEnabled }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  const { t } = useLanguage();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-lg shadow-sm">
@@ -51,7 +53,7 @@ export default function Navbar({ onNotificationClick, notificationsEnabled }: Na
                   : "text-gray-600"
               }`}
             >
-              {link.label}
+              {t(link.labelKey)}
               {pathname === link.href && (
                 <motion.span 
                   layoutId="navbar-indicator"
@@ -134,7 +136,7 @@ export default function Navbar({ onNotificationClick, notificationsEnabled }: Na
                       : "hover:bg-gray-100"
                   }`}
                 >
-                  {link.label}
+                  {t(link.labelKey)}
                 </Link>
               ))}
               <Link
@@ -142,7 +144,7 @@ export default function Navbar({ onNotificationClick, notificationsEnabled }: Na
                 onClick={() => setMobileMenuOpen(false)}
                 className="block px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-100"
               >
-                Sign In
+                {t('nav.login')}
               </Link>
               <div className="px-4 py-2 border-t mt-2 pt-4">
                 <p className="text-xs text-gray-500 mb-2">Select Language</p>
