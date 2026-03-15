@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { MapPin, Search, Map, List, Grid, Loader2 } from "lucide-react";
+import { MapPin, Search, Map, List, Grid, Loader2, Maximize2 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import dynamic from "next/dynamic";
@@ -302,6 +302,13 @@ export default function FacilitiesPage() {
                 >
                   <Map className="h-5 w-5" />
                 </button>
+                <Link
+                  href="/facilities/map"
+                  className="p-2.5 rounded-md transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:text-emerald-600 hover:bg-white"
+                  title="Full-screen map"
+                >
+                  <Maximize2 className="h-5 w-5" />
+                </Link>
               </div>
             </div>
           </div>
