@@ -1,7 +1,13 @@
 import { db } from "@/lib/db";
+import { auth } from "@/lib/auth";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import AdminMobileNav from "./AdminMobileNav";
+import { 
+  Building2, Clock, CheckCircle, MapPin, Users, Activity, 
+  TrendingUp, AlertTriangle, Brain, BarChart3 
+} from "lucide-react";
+import DashboardCharts from "./components/DashboardCharts";
+import AIInsightsCard from "./components/AIInsightsCard";
 
 export const dynamic = "force-dynamic";
 
@@ -27,11 +33,13 @@ async function getStats() {
     pendingApprovals,
     approvedFacilities,
     totalRegions,
+    totalUsers,
   ] = await Promise.all([
     db.facility.count(),
     db.facility.count({ where: { status: "PENDING" } }),
     db.facility.count({ where: { status: "APPROVED" } }),
     db.region.count(),
+    db.user.count(),
   ]);
 
   const facilitiesByType = await db.facility.groupBy({
@@ -46,13 +54,23 @@ async function getStats() {
     where: { status: "APPROVED" },
   });
 
+  // Get diagnosis reports for disease trends
+  const recentDiagnoses = await db.diagnosisReport.groupBy({
+    by: ['diseaseName'],
+    _sum: { caseCount: true },
+    orderBy: { _sum: { caseCount: 'desc' } },
+    take: 5,
+  });
+
   return {
     totalFacilities,
     pendingApprovals,
     approvedFacilities,
     totalRegions,
+    totalUsers,
     facilitiesByType,
     facilitiesByRegion: facilitiesByRegion.length,
+    topDiseases: recentDiagnoses,
   };
 }
 
@@ -74,42 +92,70 @@ async function getRecentFacilities() {
   });
 }
 
+async function getMonthlyVisitData() {
+  const now = new Date();
+  const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+  
+  try {
+    const visits = await db.$queryRaw<{ month: string; total: number }[]>`
+      SELECT 
+        TO_CHAR(visit_date, 'Mon') as month,
+        SUM(visit_count)::int as total
+      FROM facility_visits
+      WHERE visit_date >= ${sixMonthsAgo}
+      GROUP BY TO_CHAR(visit_date, 'Mon'), DATE_TRUNC('month', visit_date)
+      ORDER BY DATE_TRUNC('month', visit_date)
+    `;
+    return visits;
+  } catch {
+    return [];
+  }
+}
+
 export default async function AdminDashboard() {
+  const session = await auth();
+  const userRole = (session?.user as { role?: string })?.role || "DISTRICT_OFFICER";
+  
   const stats = await getStats();
   const pendingFacilities = await getPendingFacilities();
   const recentFacilities = await getRecentFacilities();
+  const monthlyVisits = await getMonthlyVisitData();
+
+  const roleLabels: Record<string, string> = {
+    SUPER_ADMIN: "Super Administrator",
+    MINISTRY_ADMIN: "Ministry Administrator",
+    ANALYST: "Health Analyst",
+    REGIONAL_DIRECTOR: "Regional Director",
+    DISTRICT_OFFICER: "District Officer",
+  };
 
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Header */}
-      <header className="bg-emerald-800 text-white">
-        <div className="container mx-auto px-4 py-4">
+      <header className="bg-white border-b shadow-sm">
+        <div className="px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Link href="/" className="flex items-center gap-2">
-                <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-                  <span className="text-emerald-800 font-bold text-xl">A</span>
-                </div>
-                <div>
-                  <span className="text-xl font-bold">Apomuden</span>
-                  <span className="text-emerald-200 text-sm block">Ministry Admin</span>
-                </div>
-              </Link>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+              <p className="text-gray-500 text-sm">
+                Welcome back, {session?.user?.name || "Admin"} • {roleLabels[userRole]}
+              </p>
             </div>
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-6">
-              <Link href="/admin" className="text-white font-medium">Dashboard</Link>
-              <Link href="/admin/facilities" className="text-emerald-200 hover:text-white">Facilities</Link>
-              <Link href="/admin/alerts" className="text-emerald-200 hover:text-white">Alerts</Link>
-              <Link href="/admin/analytics" className="text-emerald-200 hover:text-white">Analytics</Link>
-            </nav>
-            {/* Mobile Navigation */}
-            <AdminMobileNav />
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-gray-500">
+                {new Date().toLocaleDateString('en-GB', { 
+                  weekday: 'long', 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}
+              </span>
+            </div>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="p-6">
         <h1 className="text-2xl font-bold text-gray-900 mb-6">Dashboard Overview</h1>
 
         {/* Stats Grid */}
@@ -332,6 +378,20 @@ export default async function AdminDashboard() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Charts Section - Only for Analysts and Admins */}
+        {["SUPER_ADMIN", "MINISTRY_ADMIN", "ANALYST"].includes(userRole) && (
+          <DashboardCharts 
+            monthlyVisits={monthlyVisits}
+            facilitiesByType={stats.facilitiesByType}
+            topDiseases={stats.topDiseases}
+          />
+        )}
+
+        {/* AI Insights - Only for Super Admin and Analysts */}
+        {["SUPER_ADMIN", "ANALYST"].includes(userRole) && (
+          <AIInsightsCard stats={stats} userRole={userRole} />
+        )}
       </main>
     </div>
   );
