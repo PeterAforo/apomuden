@@ -14,8 +14,9 @@ interface NavbarProps {
 
 const NAV_LINKS = [
   { href: "/facilities", label: "Find Facilities" },
+  { href: "/ambulance", label: "Ambulance" },
   { href: "/alerts", label: "Health Alerts" },
-  { href: "/compare", label: "Compare" },
+  { href: "/news", label: "News" },
   { href: "/about", label: "About" },
 ];
 

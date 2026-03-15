@@ -3,10 +3,13 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Heart, Phone, Mail, MapPin, Facebook, Twitter, Instagram, Youtube } from "lucide-react";
+import { NewsletterSection } from "@/components/newsletter";
 
 export default function Footer() {
   return (
-    <footer className="bg-gradient-to-b from-gray-50 to-gray-100 border-t">
+    <>
+      <NewsletterSection />
+      <footer className="bg-gradient-to-b from-gray-50 to-gray-100 border-t">
       {/* Main Footer */}
       <div className="container py-16">
         <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-8">
@@ -130,5 +133,6 @@ export default function Footer() {
         </div>
       </div>
     </footer>
+    </>
   );
 }
