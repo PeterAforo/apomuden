@@ -2,11 +2,16 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import Image from "next/image";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { MapPin, Search, Map, List, Grid, Loader2, Maximize2 } from "lucide-react";
+import { 
+  MapPin, Search, Map, List, Grid, Loader2, Maximize2, 
+  Heart, Navigation, Phone, Star, Shield, Ambulance, 
+  Building2, Clock, ChevronDown, Filter, X, Sparkles
+} from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import dynamic from "next/dynamic";
@@ -39,7 +44,26 @@ interface Facility {
   description: string | null;
   region: { name: string; code: string };
   district: { name: string };
+  imageUrl?: string | null;
 }
+
+// Tier configuration with colors and icons
+const TIER_CONFIG: Record<string, { stars: number; label: string; color: string; bgColor: string; icon: string }> = {
+  FIVE_STAR: { stars: 5, label: "Premium", color: "text-amber-500", bgColor: "bg-gradient-to-r from-amber-100 to-yellow-100", icon: "👑" },
+  FOUR_STAR: { stars: 4, label: "Excellent", color: "text-purple-500", bgColor: "bg-gradient-to-r from-purple-100 to-pink-100", icon: "⭐" },
+  THREE_STAR: { stars: 3, label: "Standard", color: "text-blue-500", bgColor: "bg-gradient-to-r from-blue-100 to-cyan-100", icon: "🏥" },
+  TWO_STAR: { stars: 2, label: "Basic", color: "text-emerald-500", bgColor: "bg-gradient-to-r from-emerald-100 to-green-100", icon: "🏨" },
+  ONE_STAR: { stars: 1, label: "Entry", color: "text-gray-500", bgColor: "bg-gray-100", icon: "🏠" },
+};
+
+// Placeholder images for facilities
+const FACILITY_IMAGES = [
+  "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=400&h=300&fit=crop",
+  "https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=400&h=300&fit=crop",
+  "https://images.unsplash.com/photo-1538108149393-fbbd81895907?w=400&h=300&fit=crop",
+  "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=300&fit=crop",
+  "https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?w=400&h=300&fit=crop",
+];
 
 const FACILITY_TYPES = [
   { value: "", label: "All Types" },
@@ -96,6 +120,25 @@ function StarRating({ rating }: { rating: number }) {
 
 const PAGE_SIZE = 12;
 
+// Get facility image based on index
+function getFacilityImage(index: number, imageUrl?: string | null): string {
+  if (imageUrl) return imageUrl;
+  return FACILITY_IMAGES[index % FACILITY_IMAGES.length];
+}
+
+// Tier Badge Component
+function TierBadge({ tier }: { tier: string | null }) {
+  if (!tier || !TIER_CONFIG[tier]) return null;
+  const config = TIER_CONFIG[tier];
+  
+  return (
+    <div className={`absolute top-3 left-3 ${config.bgColor} px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-lg backdrop-blur-sm`}>
+      <span>{config.icon}</span>
+      <span className={`text-xs font-bold ${config.color}`}>{config.label}</span>
+    </div>
+  );
+}
+
 export default function FacilitiesPage() {
   const [facilities, setFacilities] = useState<Facility[]>([]);
   const [loading, setLoading] = useState(true);
@@ -110,9 +153,41 @@ export default function FacilitiesPage() {
   const [hasMore, setHasMore] = useState(true);
   const [viewMode, setViewMode] = useState<"grid" | "list" | "map">("grid");
   const [selectedFacilityId, setSelectedFacilityId] = useState<string | null>(null);
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  const [showFilters, setShowFilters] = useState(false);
   
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
+
+  // Load favorites from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem("apomuden_favorites");
+    if (saved) {
+      setFavorites(new Set(JSON.parse(saved)));
+    }
+  }, []);
+
+  // Toggle favorite
+  const toggleFavorite = (facilityId: string) => {
+    setFavorites(prev => {
+      const newFavorites = new Set(prev);
+      if (newFavorites.has(facilityId)) {
+        newFavorites.delete(facilityId);
+      } else {
+        newFavorites.add(facilityId);
+      }
+      const favArray: string[] = [];
+      newFavorites.forEach(id => favArray.push(id));
+      localStorage.setItem("apomuden_favorites", JSON.stringify(favArray));
+      return newFavorites;
+    });
+  };
+
+  // Open directions in Google Maps
+  const openDirections = (facility: Facility) => {
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${facility.latitude},${facility.longitude}&destination_place_id=${encodeURIComponent(facility.name)}`;
+    window.open(url, "_blank");
+  };
 
   // Reset and fetch when filters change
   useEffect(() => {
@@ -366,86 +441,138 @@ export default function FacilitiesPage() {
           </div>
         ) : (
           /* Grid/List View */
-          <div className={viewMode === "grid" ? "grid gap-6 md:grid-cols-2 lg:grid-cols-3" : "space-y-4"}>
-            {facilities.map((facility, index) => (
-              <Card 
-                key={facility.id} 
-                ref={index === facilities.length - 1 ? lastFacilityRef : null}
-                className="group overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-0 shadow-md"
-              >
-                {/* Card Header with gradient */}
-                <div className="h-2 bg-gradient-to-r from-emerald-500 to-teal-500"></div>
-                <CardContent className="p-5">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-lg text-gray-900 line-clamp-1 group-hover:text-emerald-600 transition-colors">
-                        {facility.name}
-                      </h3>
-                      <p className="text-sm text-emerald-600 font-medium">
-                        {facility.type.replace("_", " ")}
-                      </p>
-                    </div>
-                    {facility.tier && (
-                      <div className="flex items-center gap-1 bg-gradient-to-r from-amber-100 to-yellow-100 px-3 py-1.5 rounded-full text-xs shadow-sm">
-                        <span className="text-amber-600 font-bold">
-                          {getTierStars(facility.tier)}★
+          <div className={viewMode === "grid" ? "grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" : "space-y-4"}>
+            <AnimatePresence>
+              {facilities.map((facility, index) => (
+                <motion.div
+                  key={facility.id}
+                  ref={index === facilities.length - 1 ? lastFacilityRef : null}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                >
+                  <Card className="group overflow-hidden hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-0 shadow-lg bg-white">
+                    {/* Image Section */}
+                    <div className="relative h-48 overflow-hidden">
+                      <img
+                        src={getFacilityImage(index, facility.imageUrl)}
+                        alt={facility.name}
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      />
+                      {/* Gradient Overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                      
+                      {/* Tier Badge */}
+                      <TierBadge tier={facility.tier} />
+                      
+                      {/* Action Buttons */}
+                      <div className="absolute top-3 right-3 flex gap-2">
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            toggleFavorite(facility.id);
+                          }}
+                          className={`p-2 rounded-full backdrop-blur-sm transition-all duration-300 ${
+                            favorites.has(facility.id)
+                              ? "bg-red-500 text-white"
+                              : "bg-white/80 text-gray-600 hover:bg-white hover:text-red-500"
+                          }`}
+                          title={favorites.has(facility.id) ? "Remove from favorites" : "Add to favorites"}
+                        >
+                          <Heart className={`w-4 h-4 ${favorites.has(facility.id) ? "fill-current" : ""}`} />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            openDirections(facility);
+                          }}
+                          className="p-2 rounded-full bg-white/80 text-gray-600 hover:bg-emerald-500 hover:text-white backdrop-blur-sm transition-all duration-300"
+                          title="Get directions"
+                        >
+                          <Navigation className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      {/* Facility Type Badge */}
+                      <div className="absolute bottom-3 left-3">
+                        <span className="px-3 py-1 bg-white/90 backdrop-blur-sm text-emerald-700 text-xs font-semibold rounded-full">
+                          {facility.type.replace("_", " ")}
                         </span>
                       </div>
-                    )}
-                  </div>
 
-                  <p className="text-sm text-gray-500 mb-4 line-clamp-2 flex items-start gap-1.5">
-                    <MapPin className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
-                    {facility.address}
-                  </p>
+                      {/* Rating Badge */}
+                      <div className="absolute bottom-3 right-3 flex items-center gap-1 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full">
+                        <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                        <span className="text-xs font-bold text-gray-800">{facility.averageRating.toFixed(1)}</span>
+                      </div>
+                    </div>
 
-                  <div className="flex items-center gap-2 mb-4 bg-gray-50 rounded-lg p-2">
-                    <StarRating rating={Math.round(facility.averageRating)} />
-                    <span className="text-sm text-gray-600 font-medium">
-                      {facility.averageRating.toFixed(1)}
-                    </span>
-                    <span className="text-sm text-gray-400">
-                      ({facility.totalReviews} reviews)
-                    </span>
-                  </div>
+                    <CardContent className="p-4">
+                      {/* Name and Location */}
+                      <Link href={`/facilities/${facility.slug}`}>
+                        <h3 className="font-bold text-lg text-gray-900 line-clamp-1 group-hover:text-emerald-600 transition-colors cursor-pointer">
+                          {facility.name}
+                        </h3>
+                      </Link>
+                      
+                      <p className="text-sm text-gray-500 mt-1 line-clamp-1 flex items-center gap-1">
+                        <MapPin className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
+                        {facility.address}
+                      </p>
 
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {facility.nhisAccepted && (
-                      <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 text-xs rounded-full font-medium border border-emerald-200">
-                        ✓ NHIS
-                      </span>
-                    )}
-                    {facility.emergencyCapable && (
-                      <span className="px-2.5 py-1 bg-red-50 text-red-700 text-xs rounded-full font-medium border border-red-200">
-                        🚨 Emergency
-                      </span>
-                    )}
-                    {facility.ambulanceAvailable && (
-                      <span className="px-2.5 py-1 bg-blue-50 text-blue-700 text-xs rounded-full font-medium border border-blue-200">
-                        🚑 Ambulance
-                      </span>
-                    )}
-                    {facility.bedCount && (
-                      <span className="px-2.5 py-1 bg-gray-50 text-gray-700 text-xs rounded-full font-medium border border-gray-200">
-                        🛏️ {facility.bedCount} beds
-                      </span>
-                    )}
-                  </div>
+                      {/* Tags */}
+                      <div className="flex flex-wrap gap-1.5 mt-3">
+                        {facility.nhisAccepted && (
+                          <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 text-xs rounded-full font-medium flex items-center gap-1">
+                            <Shield className="w-3 h-3" /> NHIS
+                          </span>
+                        )}
+                        {facility.emergencyCapable && (
+                          <span className="px-2 py-0.5 bg-red-50 text-red-700 text-xs rounded-full font-medium">
+                            🚨 24/7
+                          </span>
+                        )}
+                        {facility.ambulanceAvailable && (
+                          <span className="px-2 py-0.5 bg-blue-50 text-blue-700 text-xs rounded-full font-medium flex items-center gap-1">
+                            <Ambulance className="w-3 h-3" />
+                          </span>
+                        )}
+                        {facility.bedCount && facility.bedCount > 0 && (
+                          <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full font-medium">
+                            {facility.bedCount} beds
+                          </span>
+                        )}
+                      </div>
 
-                  <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                    <span className="text-sm text-gray-500 flex items-center gap-1">
-                      <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
-                      {facility.region.name}
-                    </span>
-                    <Link href={`/facilities/${facility.slug}`}>
-                      <Button size="sm" variant="outline">
-                        View Details
-                      </Button>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                      {/* Footer with Region and Actions */}
+                      <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
+                        <span className="text-xs text-gray-500 flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
+                          {facility.region.name}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          {facility.phone && (
+                            <a
+                              href={`tel:${facility.phone}`}
+                              className="p-1.5 rounded-full bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors"
+                              title="Call facility"
+                            >
+                              <Phone className="w-3.5 h-3.5" />
+                            </a>
+                          )}
+                          <Link href={`/facilities/${facility.slug}`}>
+                            <Button size="sm" className="h-7 text-xs bg-emerald-600 hover:bg-emerald-700">
+                              View
+                            </Button>
+                          </Link>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </div>
         )}
 
