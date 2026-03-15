@@ -2,9 +2,11 @@
   "name": "Apomuden Health Portal",
   "short_name": "Apomuden",
   "description": "Ghana's National Digital Health Platform - Find healthcare facilities, check symptoms, and access emergency services",
-  "start_url": "/",
+  "start_url": "/?source=pwa",
+  "id": "/",
   "display": "standalone",
-  "background_color": "#059669",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "background_color": "#ffffff",
   "theme_color": "#059669",
   "orientation": "portrait-primary",
   "icons": [
@@ -12,49 +14,77 @@
       "src": "/icons/icon-72x72.png",
       "sizes": "72x72",
       "type": "image/png",
-      "purpose": "maskable any"
+      "purpose": "any"
     },
     {
       "src": "/icons/icon-96x96.png",
       "sizes": "96x96",
       "type": "image/png",
-      "purpose": "maskable any"
+      "purpose": "any"
     },
     {
       "src": "/icons/icon-128x128.png",
       "sizes": "128x128",
       "type": "image/png",
-      "purpose": "maskable any"
+      "purpose": "any"
     },
     {
       "src": "/icons/icon-144x144.png",
       "sizes": "144x144",
       "type": "image/png",
-      "purpose": "maskable any"
+      "purpose": "any"
     },
     {
       "src": "/icons/icon-152x152.png",
       "sizes": "152x152",
       "type": "image/png",
-      "purpose": "maskable any"
+      "purpose": "any"
     },
     {
       "src": "/icons/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "maskable any"
+      "purpose": "any"
     },
     {
       "src": "/icons/icon-384x384.png",
       "sizes": "384x384",
       "type": "image/png",
-      "purpose": "maskable any"
+      "purpose": "any"
     },
     {
       "src": "/icons/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "maskable any"
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/screenshot-mobile.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Apomuden on mobile - Find healthcare facilities"
+    },
+    {
+      "src": "/screenshots/screenshot-desktop.png",
+      "sizes": "1280x800",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Apomuden dashboard on desktop"
     }
   ],
   "categories": ["health", "medical", "lifestyle"],
@@ -66,22 +96,35 @@
       "name": "Find Facilities",
       "short_name": "Facilities",
       "description": "Search for healthcare facilities near you",
-      "url": "/facilities",
-      "icons": [{ "src": "/icons/facility-96x96.png", "sizes": "96x96" }]
+      "url": "/facilities?source=shortcut",
+      "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
     },
     {
       "name": "Emergency",
       "short_name": "Emergency",
       "description": "Request emergency assistance",
-      "url": "/emergency",
-      "icons": [{ "src": "/icons/emergency-96x96.png", "sizes": "96x96" }]
+      "url": "/emergency?source=shortcut",
+      "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Find Ambulance",
+      "short_name": "Ambulance",
+      "description": "Find ambulance services near you",
+      "url": "/ambulance?source=shortcut",
+      "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
     },
     {
       "name": "Symptom Checker",
       "short_name": "Symptoms",
-      "description": "Check your symptoms",
-      "url": "/dashboard/symptom-checker",
-      "icons": [{ "src": "/icons/symptom-96x96.png", "sizes": "96x96" }]
+      "description": "Check your symptoms with AI",
+      "url": "/dashboard/symptom-checker?source=shortcut",
+      "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
     }
-  ]
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "handle_links": "preferred",
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  }
 }
