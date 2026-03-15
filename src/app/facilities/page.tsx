@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { 
   MapPin, Search, Map, List, Grid, Loader2, Maximize2, 
   Heart, Navigation, Phone, Star, Shield, Ambulance, 
-  Building2, Clock, ChevronDown, Filter, X, Sparkles
+  Building2, Clock, ChevronDown, Filter, X, Sparkles, Landmark
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -31,6 +31,7 @@ interface Facility {
   slug: string;
   type: string;
   tier: string | null;
+  ownership: string;
   address: string;
   latitude: number;
   longitude: number;
@@ -46,6 +47,14 @@ interface Facility {
   district: { name: string };
   imageUrl?: string | null;
 }
+
+// Ownership configuration
+const OWNERSHIP_CONFIG: Record<string, { label: string; color: string; bgColor: string; icon: React.ReactNode }> = {
+  PUBLIC: { label: "Public", color: "text-blue-700", bgColor: "bg-blue-50", icon: <Landmark className="w-3 h-3" /> },
+  PRIVATE: { label: "Private", color: "text-purple-700", bgColor: "bg-purple-50", icon: <Building2 className="w-3 h-3" /> },
+  MISSION: { label: "Mission", color: "text-amber-700", bgColor: "bg-amber-50", icon: <span className="text-xs">✝</span> },
+  QUASI_GOVERNMENT: { label: "Quasi-Gov", color: "text-teal-700", bgColor: "bg-teal-50", icon: <Landmark className="w-3 h-3" /> },
+};
 
 // Tier configuration with colors and icons
 const TIER_CONFIG: Record<string, { stars: number; label: string; color: string; bgColor: string; icon: string }> = {
@@ -523,6 +532,12 @@ export default function FacilitiesPage() {
 
                       {/* Tags */}
                       <div className="flex flex-wrap gap-1.5 mt-3">
+                        {/* Ownership Badge */}
+                        {facility.ownership && OWNERSHIP_CONFIG[facility.ownership] && (
+                          <span className={`px-2 py-0.5 ${OWNERSHIP_CONFIG[facility.ownership].bgColor} ${OWNERSHIP_CONFIG[facility.ownership].color} text-xs rounded-full font-medium flex items-center gap-1`}>
+                            {OWNERSHIP_CONFIG[facility.ownership].icon} {OWNERSHIP_CONFIG[facility.ownership].label}
+                          </span>
+                        )}
                         {facility.nhisAccepted && (
                           <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 text-xs rounded-full font-medium flex items-center gap-1">
                             <Shield className="w-3 h-3" /> NHIS

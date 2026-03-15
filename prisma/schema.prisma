@@ -70,6 +70,13 @@ enum NHISCoverage {
   NO
 }
 
+enum FacilityOwnership {
+  PUBLIC
+  PRIVATE
+  MISSION
+  QUASI_GOVERNMENT
+}
+
 enum DiagnosisPeriodType {
   DAILY
   WEEKLY
@@ -283,6 +290,7 @@ model Facility {
   slug                String         @unique
   type                FacilityType
   tier                FacilityTier?
+  ownership           FacilityOwnership @default(PUBLIC)
   licenseNumber       String         @unique @map("license_number")
   licenseDocumentUrl  String         @map("license_document_url")
   status              FacilityStatus @default(PENDING)

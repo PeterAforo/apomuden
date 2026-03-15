@@ -11,8 +11,16 @@ import { FacilityImageGallery, FacilityLocationMap, TierBadge, TierCard, Facilit
 import { 
   Phone, Mail, Globe, Clock, MapPin, Bed, Heart, 
   Stethoscope, Activity, Ambulance, Shield, Share2, 
-  Printer, ChevronRight, CheckCircle2, XCircle
+  Printer, ChevronRight, CheckCircle2, XCircle, Building2, Landmark
 } from "lucide-react";
+
+// Ownership configuration
+const OWNERSHIP_CONFIG: Record<string, { label: string; color: string; bgColor: string; borderColor: string }> = {
+  PUBLIC: { label: "Public Facility", color: "text-blue-700", bgColor: "bg-blue-500/80", borderColor: "border-blue-300" },
+  PRIVATE: { label: "Private Facility", color: "text-purple-700", bgColor: "bg-purple-500/80", borderColor: "border-purple-300" },
+  MISSION: { label: "Mission/Faith-Based", color: "text-amber-700", bgColor: "bg-amber-500/80", borderColor: "border-amber-300" },
+  QUASI_GOVERNMENT: { label: "Quasi-Government", color: "text-teal-700", bgColor: "bg-teal-500/80", borderColor: "border-teal-300" },
+};
 
 export const dynamic = "force-dynamic";
 
@@ -128,6 +136,13 @@ export default async function FacilityDetailPage({ params }: PageProps) {
 
           {/* Feature Badges */}
           <div className="flex flex-wrap gap-2 pb-4">
+            {/* Ownership Badge */}
+            {facility.ownership && OWNERSHIP_CONFIG[facility.ownership] && (
+              <span className={`px-3 py-1.5 ${OWNERSHIP_CONFIG[facility.ownership].bgColor} backdrop-blur-sm text-white text-sm rounded-full font-medium flex items-center gap-1.5`}>
+                {facility.ownership === 'PRIVATE' ? <Building2 className="w-4 h-4" /> : <Landmark className="w-4 h-4" />}
+                {OWNERSHIP_CONFIG[facility.ownership].label}
+              </span>
+            )}
             {facility.nhisAccepted && (
               <span className="px-3 py-1.5 bg-white/20 backdrop-blur-sm text-white text-sm rounded-full font-medium border border-white/30 flex items-center gap-1.5">
                 <Shield className="w-4 h-4" /> NHIS Accepted
