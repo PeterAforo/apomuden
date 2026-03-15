@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 
-// Mock appointments - In production, this would come from the database
 export async function GET() {
   try {
     const session = await auth();
@@ -13,16 +12,17 @@ export async function GET() {
       );
     }
 
-    // Return mock appointments for demo
+    // Return demo appointments for now
     const appointments = [
       {
-        id: "apt-1",
+        id: "apt-demo-1",
         doctorName: "Dr. Kwame Asante",
         specialty: "General Practice",
         date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
         time: "10:00",
         status: "SCHEDULED",
-        meetingLink: "https://meet.google.com/abc-defg-hij",
+        roomName: null,
+        roomUrl: null,
       },
     ];
 

@@ -570,3 +570,135 @@ model Notification {
   @@index([status])
   @@map("notifications")
 }
+
+// ============================================================================
+// TELEMEDICINE MODELS
+// ============================================================================
+
+enum DoctorStatus {
+  AVAILABLE
+  BUSY
+  OFFLINE
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+model Doctor {
+  id              String       @id @default(uuid()) @db.Uuid
+  userId          String       @unique @map("user_id") @db.Uuid
+  facilityId      String?      @map("facility_id") @db.Uuid
+  specialty       String
+  licenseNumber   String       @unique @map("license_number")
+  yearsExperience Int          @default(0) @map("years_experience")
+  bio             String?      @db.Text
+  consultationFee Decimal      @map("consultation_fee") @db.Decimal(10, 2)
+  rating          Float        @default(0)
+  totalConsults   Int          @default(0) @map("total_consults")
+  status          DoctorStatus @default(OFFLINE)
+  availableFrom   String?      @map("available_from")
+  availableTo     String?      @map("available_to")
+  availableDays   String[]     @default(["monday", "tuesday", "wednesday", "thursday", "friday"]) @map("available_days")
+  imageUrl        String?      @map("image_url")
+  isVerified      Boolean      @default(false) @map("is_verified")
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
+
+  // Relations
+  appointments Appointment[]
+
+  @@index([specialty])
+  @@index([status])
+  @@map("doctors")
+}
+
+model Appointment {
+  id              String            @id @default(uuid()) @db.Uuid
+  patientId       String            @map("patient_id") @db.Uuid
+  doctorId        String            @map("doctor_id") @db.Uuid
+  scheduledAt     DateTime          @map("scheduled_at")
+  duration        Int               @default(30)
+  status          AppointmentStatus @default(SCHEDULED)
+  type            String            @default("video")
+  symptoms        String?           @db.Text
+  notes           String?           @db.Text
+  prescription    String?           @db.Text
+  roomName        String?           @map("room_name")
+  roomUrl         String?           @map("room_url")
+  startedAt       DateTime?         @map("started_at")
+  endedAt         DateTime?         @map("ended_at")
+  cancelReason    String?           @map("cancel_reason")
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+
+  // Relations
+  doctor  Doctor   @relation(fields: [doctorId], references: [id])
+  payment Payment?
+
+  @@index([patientId])
+  @@index([doctorId])
+  @@index([scheduledAt])
+  @@index([status])
+  @@map("appointments")
+}
+
+model Payment {
+  id            String        @id @default(uuid()) @db.Uuid
+  appointmentId String        @unique @map("appointment_id") @db.Uuid
+  amount        Decimal       @db.Decimal(10, 2)
+  currency      String        @default("GHS")
+  status        PaymentStatus @default(PENDING)
+  provider      String        @default("momo")
+  reference     String?       @unique
+  metadata      Json?
+  paidAt        DateTime?     @map("paid_at")
+  createdAt     DateTime      @default(now()) @map("created_at")
+
+  // Relations
+  appointment Appointment @relation(fields: [appointmentId], references: [id])
+
+  @@map("payments")
+}
+
+// ============================================================================
+// FAVORITES MODEL
+// ============================================================================
+
+model Favorite {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  facilityId String   @map("facility_id") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@unique([userId, facilityId])
+  @@index([userId])
+  @@map("favorites")
+}
+
+// ============================================================================
+// PUSH SUBSCRIPTION MODEL
+// ============================================================================
+
+model PushSubscription {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@map("push_subscriptions")
+}
