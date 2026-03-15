@@ -22,6 +22,8 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
 
 // Animation variants
 const fadeInUp = {
@@ -243,54 +245,11 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen">
-      {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between">
-          <Link href="/" className="flex items-center space-x-2">
-            <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">A</span>
-            </div>
-            <span className="font-bold text-xl text-primary">Apomuden</span>
-          </Link>
-
-          <nav className="hidden md:flex items-center space-x-6">
-            <Link href="/facilities" className="text-sm font-medium hover:text-primary transition-colors">
-              Find Facilities
-            </Link>
-            <Link href="/alerts" className="text-sm font-medium hover:text-primary transition-colors">
-              Health Alerts
-            </Link>
-            <Link href="/compare" className="text-sm font-medium hover:text-primary transition-colors">
-              Compare
-            </Link>
-            <Link href="/about" className="text-sm font-medium hover:text-primary transition-colors">
-              About
-            </Link>
-          </nav>
-
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={() => setShowNotificationModal(true)}
-              className="relative p-2 hover:bg-gray-100 rounded-full transition-colors"
-              title="Health Notifications"
-            >
-              <Bell className="h-5 w-5 text-gray-600" />
-              {notificationsEnabled && (
-                <span className="absolute top-1 right-1 w-2 h-2 bg-green-500 rounded-full"></span>
-              )}
-            </button>
-            <Link href="/emergency">
-              <Button variant="destructive" size="sm" className="emergency-pulse">
-                <Phone className="h-4 w-4 mr-2" />
-                Emergency
-              </Button>
-            </Link>
-            <Link href="/auth/login">
-              <Button variant="outline" size="sm">Sign In</Button>
-            </Link>
-          </div>
-        </div>
-      </header>
+      {/* Header - Using shared Navbar component */}
+      <Navbar 
+        onNotificationClick={() => setShowNotificationModal(true)}
+        notificationsEnabled={notificationsEnabled}
+      />
 
       {/* Hero Section with Sliding Background */}
       <motion.section 
@@ -836,93 +795,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t py-12">
-        <div className="container">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
-                  <span className="text-primary-foreground font-bold text-sm">
-                    A
-                  </span>
-                </div>
-                <span className="font-bold text-xl text-primary">Apomuden</span>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Ghana's National Digital Health Platform by the Ministry of
-                Health.
-              </p>
-            </div>
-
-            <div>
-              <h4 className="font-semibold mb-4">Quick Links</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>
-                  <Link href="/facilities" className="hover:text-primary">
-                    Find Facilities
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/alerts" className="hover:text-primary">
-                    Health Alerts
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/compare" className="hover:text-primary">
-                    Compare Services
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/emergency" className="hover:text-primary">
-                    Emergency Services
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-semibold mb-4">For Facilities</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>
-                  <Link
-                    href="/auth/facility-register"
-                    className="hover:text-primary"
-                  >
-                    Register Facility
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/facility-admin" className="hover:text-primary">
-                    Facility Dashboard
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/docs/guidelines" className="hover:text-primary">
-                    Guidelines
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-semibold mb-4">Contact</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>Ministry of Health, Ghana</li>
-                <li>Emergency: 112</li>
-                <li>support@apomuden.gov.gh</li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground">
-            <p>
-              © {new Date().getFullYear()} Apomuden. Ghana Ministry of Health.
-              All rights reserved.
-            </p>
-          </div>
-        </div>
-      </footer>
+      {/* Footer - Using shared Footer component with Newsletter */}
+      <Footer />
 
       {/* Emergency Request Modal */}
       {showEmergencyModal && (
