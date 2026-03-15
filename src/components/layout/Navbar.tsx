@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Phone, Menu, X, Bell, Heart } from "lucide-react";
+import { LanguageSwitcher } from "@/components/language";
 
 interface NavbarProps {
   onNotificationClick?: () => void;
@@ -61,7 +62,12 @@ export default function Navbar({ onNotificationClick, notificationsEnabled }: Na
           ))}
         </nav>
 
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2 md:space-x-4">
+          {/* Language Switcher */}
+          <div className="hidden sm:block">
+            <LanguageSwitcher />
+          </div>
+
           {/* Notification Bell */}
           {onNotificationClick && (
             <motion.button
@@ -138,6 +144,10 @@ export default function Navbar({ onNotificationClick, notificationsEnabled }: Na
               >
                 Sign In
               </Link>
+              <div className="px-4 py-2 border-t mt-2 pt-4">
+                <p className="text-xs text-gray-500 mb-2">Select Language</p>
+                <LanguageSwitcher />
+              </div>
             </nav>
           </motion.div>
         )}
