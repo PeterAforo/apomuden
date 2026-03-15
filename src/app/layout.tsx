@@ -6,6 +6,8 @@ import { Toaster } from "@/components/ui/toaster";
 import KwasiChatbot from "@/components/chatbot/KwasiChatbot";
 import { PWAUpdateBanner, PWAInstallButton, NetworkStatusBanner } from "@/components/pwa";
 import { HealthAlertProvider } from "@/components/alerts";
+import { LanguageProvider } from "@/lib/i18n/LanguageContext";
+import { VoiceCommandButton } from "@/components/voice";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -127,14 +129,17 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <Providers>
-          <HealthAlertProvider>
-            <PWAUpdateBanner />
-            <NetworkStatusBanner />
-            {children}
-            <Toaster />
-            <KwasiChatbot />
-            <PWAInstallButton />
-          </HealthAlertProvider>
+          <LanguageProvider>
+            <HealthAlertProvider>
+              <PWAUpdateBanner />
+              <NetworkStatusBanner />
+              {children}
+              <Toaster />
+              <KwasiChatbot />
+              <VoiceCommandButton />
+              <PWAInstallButton />
+            </HealthAlertProvider>
+          </LanguageProvider>
         </Providers>
         <script
           dangerouslySetInnerHTML={{
