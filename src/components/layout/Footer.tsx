@@ -16,13 +16,13 @@ export default function Footer() {
           {/* Brand Column */}
           <div className="lg:col-span-2">
             <Link href="/" className="flex items-center space-x-2 mb-4 group">
-              <motion.div 
-                className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md"
+              <motion.img 
+                src="/favicon.svg"
+                alt="OneHealthGH"
+                className="h-10 w-10 rounded-xl shadow-md"
                 whileHover={{ scale: 1.1, rotate: 5 }}
-              >
-                <Heart className="h-5 w-5 text-white fill-white" />
-              </motion.div>
-              <span className="font-bold text-2xl bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">Apomuden</span>
+              />
+              <span className="font-bold text-2xl bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">OneHealthGH</span>
             </Link>
             <p className="text-gray-600 mb-6 max-w-sm">
               Ghana's National Digital Health Platform. Connecting citizens with quality healthcare services across all 16 regions.
@@ -107,9 +107,9 @@ export default function Footer() {
                 </a>
               </li>
               <li>
-                <a href="mailto:support@apomuden.gov.gh" className="flex items-center gap-2 text-sm text-gray-600 hover:text-emerald-600 transition-colors">
+                <a href="mailto:support@onehealthgh.gov.gh" className="flex items-center gap-2 text-sm text-gray-600 hover:text-emerald-600 transition-colors">
                   <Mail className="h-4 w-4 text-emerald-600" />
-                  <span>support@apomuden.gov.gh</span>
+                  <span>support@onehealthgh.gov.gh</span>
                 </a>
               </li>
             </ul>
@@ -122,7 +122,7 @@ export default function Footer() {
         <div className="container py-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-sm text-gray-500">
-              © {new Date().getFullYear()} Apomuden. Ghana Ministry of Health. All rights reserved.
+              © {new Date().getFullYear()} OneHealthGH. Ghana Ministry of Health. All rights reserved.
             </p>
             <div className="flex items-center gap-6 text-sm text-gray-500">
               <Link href="/privacy" className="hover:text-emerald-600 transition-colors">Privacy Policy</Link>

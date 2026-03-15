@@ -1,5 +1,5 @@
 // ============================================================
-// Apomuden Health Portal - Service Worker
+// OneHealthGH - Service Worker
 // Production-grade PWA with Workbox caching strategies
 // ============================================================
 
@@ -10,11 +10,11 @@ importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.0.0/workbox
 // ============================================================
 
 const CACHE_VERSION = 'v2';
-const APP_SHELL_CACHE = `apomuden-shell-${CACHE_VERSION}`;
-const DYNAMIC_CACHE = `apomuden-dynamic-${CACHE_VERSION}`;
-const IMAGE_CACHE = `apomuden-images-${CACHE_VERSION}`;
-const FONT_CACHE = `apomuden-fonts-${CACHE_VERSION}`;
-const API_CACHE = `apomuden-api-${CACHE_VERSION}`;
+const APP_SHELL_CACHE = `onehealthgh-shell-${CACHE_VERSION}`;
+const DYNAMIC_CACHE = `onehealthgh-dynamic-${CACHE_VERSION}`;
+const IMAGE_CACHE = `onehealthgh-images-${CACHE_VERSION}`;
+const FONT_CACHE = `onehealthgh-fonts-${CACHE_VERSION}`;
+const API_CACHE = `onehealthgh-api-${CACHE_VERSION}`;
 const OFFLINE_URL = '/offline.html';
 
 // ============================================================
@@ -130,7 +130,7 @@ if (workbox) {
   );
 
   // 4f. API POST Requests - Network Only with Background Sync
-  const bgSyncPlugin = new backgroundSync.BackgroundSyncPlugin('apomuden-sync-queue', {
+  const bgSyncPlugin = new backgroundSync.BackgroundSyncPlugin('onehealthgh-sync-queue', {
     maxRetentionTime: 24 * 60 // 24 hours in minutes
   });
 
@@ -167,11 +167,11 @@ self.addEventListener('push', (event) => {
   console.log('[SW] Push notification received');
 
   let data = {
-    title: 'Apomuden Health Alert',
+    title: 'OneHealthGH Alert',
     body: 'You have a new health notification',
     icon: '/icons/icon-192x192.png',
     badge: '/icons/icon-96x96.png',
-    tag: 'apomuden-notification',
+    tag: 'onehealthgh-notification',
     data: { url: '/' },
     requireInteraction: false
   };
@@ -306,7 +306,7 @@ async function syncFormData() {
 // IndexedDB helpers
 function openDB() {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open('apomuden-offline', 1);
+    const request = indexedDB.open('onehealthgh-offline', 1);
     request.onerror = () => reject(request.error);
     request.onsuccess = () => resolve(request.result);
     request.onupgradeneeded = (event) => {
@@ -391,4 +391,4 @@ async function refreshHealthAlerts() {
   }
 }
 
-console.log('[SW] Apomuden Service Worker loaded - Version:', CACHE_VERSION);
+console.log('[SW] OneHealthGH Service Worker loaded - Version:', CACHE_VERSION);

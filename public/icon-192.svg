@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+  <defs>
+    <linearGradient id="redGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#CE1126"/>
+      <stop offset="100%" style="stop-color:#B80F22"/>
+    </linearGradient>
+    <linearGradient id="yellowGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#FCD116"/>
+      <stop offset="100%" style="stop-color:#E5BC14"/>
+    </linearGradient>
+    <linearGradient id="greenGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#006B3F"/>
+      <stop offset="100%" style="stop-color:#005A35"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="96" cy="96" r="90" fill="white"/>
+  
+  <!-- Ghana Map Shape -->
+  <g transform="translate(96, 96) scale(0.85)">
+    <!-- Red stripe (top) -->
+    <path d="M0 -70 
+             C-35 -70 -60 -55 -65 -40
+             L-65 -20
+             L65 -20
+             L65 -40
+             C60 -55 35 -70 0 -70Z" 
+          fill="url(#redGradient)"/>
+    
+    <!-- Yellow stripe (middle) -->
+    <path d="M-65 -20
+             L-65 20
+             L65 20
+             L65 -20
+             Z" 
+          fill="url(#yellowGradient)"/>
+    
+    <!-- Green stripe (bottom) -->
+    <path d="M-65 20
+             L-65 40
+             C-60 55 -35 70 0 70
+             C35 70 60 55 65 40
+             L65 20
+             Z" 
+          fill="url(#greenGradient)"/>
+    
+    <!-- Health Plus Sign -->
+    <circle cx="0" cy="0" r="22" fill="white" opacity="0.95"/>
+    <rect x="-16" y="-5" width="32" height="10" rx="2" fill="#CE1126"/>
+    <rect x="-5" y="-16" width="10" height="32" rx="2" fill="#CE1126"/>
+  </g>
+</svg>

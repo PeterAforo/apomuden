@@ -1,6 +1,6 @@
 {
-  "name": "Apomuden Health Portal",
-  "short_name": "Apomuden",
+  "name": "OneHealthGH",
+  "short_name": "OneHealthGH",
   "description": "Ghana's National Digital Health Platform - Find healthcare facilities, check symptoms, and access emergency services",
   "start_url": "/?source=pwa",
   "id": "/",
@@ -77,14 +77,14 @@
       "sizes": "390x844",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "Apomuden on mobile - Find healthcare facilities"
+      "label": "OneHealthGH on mobile - Find healthcare facilities"
     },
     {
       "src": "/screenshots/screenshot-desktop.png",
       "sizes": "1280x800",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "Apomuden dashboard on desktop"
+      "label": "OneHealthGH dashboard on desktop"
     }
   ],
   "categories": ["health", "medical", "lifestyle"],

@@ -31,14 +31,14 @@ export default function Navbar({ onNotificationClick, notificationsEnabled }: Na
     <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-lg shadow-sm">
       <div className="container flex h-16 items-center justify-between">
         <Link href="/" className="flex items-center space-x-2 group">
-          <motion.div 
-            className="h-9 w-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md"
+          <motion.img 
+            src="/favicon.svg"
+            alt="OneHealthGH"
+            className="h-9 w-9 rounded-xl shadow-md"
             whileHover={{ scale: 1.1, rotate: 5 }}
             whileTap={{ scale: 0.95 }}
-          >
-            <Heart className="h-5 w-5 text-white fill-white" />
-          </motion.div>
-          <span className="font-bold text-xl bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">Apomuden</span>
+          />
+          <span className="font-bold text-xl bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">OneHealthGH</span>
         </Link>
 
         {/* Desktop Navigation */}

@@ -21,8 +21,8 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: "Apomuden - Ghana's National Digital Health Platform",
-    template: "%s | Apomuden",
+    default: "OneHealthGH - Ghana's National Digital Health Platform",
+    template: "%s | OneHealthGH",
   },
   description:
     "Discover healthcare facilities, compare services and pricing, request emergency services, and receive health alerts across Ghana. Find hospitals, clinics, pharmacies near you.",
@@ -47,12 +47,12 @@ export const metadata: Metadata = {
   authors: [{ name: "Ghana Ministry of Health" }],
   creator: "Ghana Health Service",
   publisher: "Ministry of Health, Ghana",
-  applicationName: "Apomuden",
+  applicationName: "OneHealthGH",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Apomuden",
+    title: "OneHealthGH",
   },
   formatDetection: {
     telephone: true,
@@ -63,8 +63,8 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_GH",
     url: "https://apomuden.vercel.app",
-    siteName: "Apomuden",
-    title: "Apomuden - Your Health, Closer",
+    siteName: "OneHealthGH",
+    title: "OneHealthGH - Your Health, Closer",
     description:
       "Ghana's National Digital Health Platform. Find healthcare facilities, check symptoms, request emergency services, and stay informed with health alerts.",
     images: [
@@ -72,13 +72,13 @@ export const metadata: Metadata = {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Apomuden - Ghana Health Portal",
+        alt: "OneHealthGH - Ghana Health Portal",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Apomuden - Ghana's National Digital Health Platform",
+    title: "OneHealthGH - Ghana's National Digital Health Platform",
     description:
       "Find healthcare facilities, check symptoms, and receive health alerts across Ghana.",
     images: ["/og-image.png"],
@@ -100,12 +100,12 @@ export const metadata: Metadata = {
   },
   category: "health",
   alternates: {
-    canonical: "https://apomuden.vercel.app",
+    canonical: "https://onehealthgh.vercel.app",
     languages: {
-      "en-GH": "https://apomuden.vercel.app",
-      "tw": "https://apomuden.vercel.app/tw",
-      "ga": "https://apomuden.vercel.app/ga",
-      "ee": "https://apomuden.vercel.app/ee",
+      "en-GH": "https://onehealthgh.vercel.app",
+      "tw": "https://onehealthgh.vercel.app/tw",
+      "ga": "https://onehealthgh.vercel.app/ga",
+      "ee": "https://onehealthgh.vercel.app/ee",
     },
   },
 };

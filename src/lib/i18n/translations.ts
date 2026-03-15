@@ -1,4 +1,4 @@
-// Multilingual translations for Apomuden Health Portal
+// Multilingual translations for OneHealthGH
 // Supported languages: English, Twi, Ga, Ewe, Hausa
 
 export type Language = 'en' | 'tw' | 'ga' | 'ee' | 'ha';

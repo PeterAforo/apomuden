@@ -235,7 +235,7 @@ export default function HomePage() {
       if (permission === "granted") {
         setNotificationsEnabled(true);
         setShowNotificationModal(false);
-        new Notification("Apomuden Health Alerts", {
+        new Notification("OneHealthGH Alerts", {
           body: "You will now receive health news and alerts for your area.",
           icon: "/icon.png",
         });
@@ -723,7 +723,7 @@ export default function HomePage() {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4">Healthcare at Your Fingertips</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Apomuden connects you with Ghana's healthcare network, making it easier to find care, compare options, and stay informed.
+              OneHealthGH connects you with Ghana's healthcare network, making it easier to find care, compare options, and stay informed.
             </p>
           </div>
 
