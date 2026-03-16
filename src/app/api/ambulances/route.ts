@@ -144,6 +144,58 @@ function estimateArrivalTime(distance: number): number {
   return Math.round((distance / avgSpeed) * 60);
 }
 
+// Generate ambulances near user's location for demo purposes
+function generateNearbyAmbulances(userLat: number, userLng: number): AmbulanceService[] {
+  const ambulanceTemplates = [
+    { name: "Rapid Response Unit 1", company: "Ghana Ambulance Service", vehicleType: "ALS" as const, status: "available" as const },
+    { name: "Emergency Unit 7", company: "National Ambulance Service", vehicleType: "MICU" as const, status: "available" as const },
+    { name: "Quick Response 3", company: "Private Medical Transport", vehicleType: "BLS" as const, status: "busy" as const },
+    { name: "Life Saver Unit 2", company: "Ghana Ambulance Service", vehicleType: "ALS" as const, status: "available" as const },
+    { name: "Critical Care Mobile", company: "Trust Hospital Ambulance", vehicleType: "MICU" as const, status: "offline" as const },
+    { name: "Community Response 5", company: "Ridge Hospital Services", vehicleType: "BLS" as const, status: "available" as const },
+  ];
+
+  return ambulanceTemplates.map((template, index) => {
+    // Generate random offset within ~5-15km radius
+    const angle = (index / ambulanceTemplates.length) * 2 * Math.PI;
+    const distance = 0.03 + Math.random() * 0.08; // ~3-11km in degrees
+    const offsetLat = Math.cos(angle) * distance;
+    const offsetLng = Math.sin(angle) * distance;
+
+    return {
+      id: `amb-${String(index + 1).padStart(3, "0")}`,
+      name: template.name,
+      company: template.company,
+      vehicleType: template.vehicleType,
+      status: template.status,
+      location: {
+        lat: userLat + offsetLat,
+        lng: userLng + offsetLng,
+        address: `Near your location`,
+      },
+      contact: {
+        phone: `+233 30 277 ${String(7777 + index).slice(0, 4)}`,
+        whatsapp: `+23324400000${index + 1}`,
+        email: index % 2 === 0 ? `dispatch${index + 1}@gas.gov.gh` : undefined,
+      },
+      driver: {
+        name: ["Kwame Mensah", "Ama Owusu", "Kofi Asante", "Yaw Boateng", "Efua Darko", "Abena Sarpong"][index],
+        experience: 4 + Math.floor(Math.random() * 8),
+        rating: 4.5 + Math.random() * 0.5,
+      },
+      equipment: template.vehicleType === "MICU" 
+        ? ["Ventilator", "Defibrillator", "IV Pumps", "Cardiac Monitor", "Suction Unit", "Oxygen"]
+        : template.vehicleType === "ALS"
+        ? ["Defibrillator", "Oxygen", "Stretcher", "First Aid Kit", "Cardiac Monitor"]
+        : ["Stretcher", "First Aid Kit", "Oxygen", "AED"],
+      pricePerKm: template.vehicleType === "MICU" ? 25 : template.vehicleType === "ALS" ? 15 : 10,
+      rating: 4.5 + Math.random() * 0.5,
+      totalTrips: 200 + Math.floor(Math.random() * 2000),
+      lastUpdated: new Date().toISOString(),
+    };
+  });
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -153,7 +205,10 @@ export async function GET(request: NextRequest) {
     const type = searchParams.get("type");
     const maxDistance = parseFloat(searchParams.get("maxDistance") || "50");
 
-    let ambulances = AMBULANCES.map((amb) => {
+    // Generate ambulances near user's location
+    const nearbyAmbulances = generateNearbyAmbulances(lat, lng);
+
+    let ambulances = nearbyAmbulances.map((amb) => {
       const distance = calculateDistance(lat, lng, amb.location.lat, amb.location.lng);
       const estimatedArrival = amb.status === "available" ? estimateArrivalTime(distance) : undefined;
       return {
