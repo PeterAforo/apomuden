@@ -79,7 +79,14 @@ export default function AmbulancePage() {
   const [requestingAmbulance, setRequestingAmbulance] = useState(false);
   const [requestSuccess, setRequestSuccess] = useState(false);
   const [mapLoaded, setMapLoaded] = useState(false);
-  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const [mounted, setMounted] = useState(false);
+  
+  // Set mounted state to prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+    setLastUpdate(new Date());
+  }, []);
 
   // Map refs
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -495,7 +502,7 @@ export default function AmbulancePage() {
                 <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg z-10">
                   <div className="flex items-center gap-2 text-xs text-gray-600">
                     <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                    <span>Live tracking • Updated {lastUpdate.toLocaleTimeString()}</span>
+                    <span>Live tracking • Updated {lastUpdate ? lastUpdate.toLocaleTimeString() : "--:--:--"}</span>
                   </div>
                 </div>
 
