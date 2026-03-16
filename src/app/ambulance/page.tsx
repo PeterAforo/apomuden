@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import mapboxgl from "mapbox-gl";
+import "mapbox-gl/dist/mapbox-gl.css";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +14,9 @@ import {
   ChevronRight, Loader2, RefreshCw, MessageSquare, Mail,
   Shield, Zap, Heart, ArrowLeft, Info, Route, Timer
 } from "lucide-react";
+
+// Initialize Mapbox
+mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "";
 
 interface AmbulanceService {
   id: string;
@@ -55,141 +60,205 @@ const STATUS_CONFIG = {
   offline: { label: "Offline", color: "bg-gray-400", textColor: "text-gray-600", bgLight: "bg-gray-100" },
 };
 
-// Mock ambulance data
-const MOCK_AMBULANCES: AmbulanceService[] = [
-  {
-    id: "amb-001",
-    name: "Rapid Response Unit 1",
-    company: "Ghana Ambulance Service",
-    vehicleType: "ALS",
-    status: "available",
-    location: { lat: 5.6037, lng: -0.1870, address: "Accra Central, Near Makola Market" },
-    contact: { phone: "+233 30 277 7777", whatsapp: "+233244000001", email: "dispatch@gas.gov.gh" },
-    driver: { name: "Kwame Mensah", experience: 8, rating: 4.9 },
-    equipment: ["Defibrillator", "Oxygen", "Stretcher", "First Aid Kit", "Cardiac Monitor"],
-    estimatedArrival: 5,
-    distance: 2.3,
-    pricePerKm: 15,
-    rating: 4.8,
-    totalTrips: 1245,
-    lastUpdated: new Date().toISOString(),
-  },
-  {
-    id: "amb-002",
-    name: "Emergency Unit 7",
-    company: "National Ambulance Service",
-    vehicleType: "MICU",
-    status: "available",
-    location: { lat: 5.5913, lng: -0.2200, address: "Korle Bu, Near Teaching Hospital" },
-    contact: { phone: "+233 30 278 8888", whatsapp: "+233244000002" },
-    driver: { name: "Ama Owusu", experience: 12, rating: 4.95 },
-    equipment: ["Ventilator", "Defibrillator", "IV Pumps", "Cardiac Monitor", "Suction Unit", "Oxygen"],
-    estimatedArrival: 8,
-    distance: 4.1,
-    pricePerKm: 25,
-    rating: 4.9,
-    totalTrips: 2156,
-    lastUpdated: new Date().toISOString(),
-  },
-  {
-    id: "amb-003",
-    name: "Quick Response 3",
-    company: "Private Medical Transport",
-    vehicleType: "BLS",
-    status: "busy",
-    location: { lat: 5.6145, lng: -0.2050, address: "Osu, Oxford Street Area" },
-    contact: { phone: "+233 24 555 1234", whatsapp: "+233245551234" },
-    driver: { name: "Kofi Asante", experience: 5, rating: 4.7 },
-    equipment: ["Stretcher", "First Aid Kit", "Oxygen", "Wheelchair"],
-    estimatedArrival: 12,
-    distance: 5.8,
-    pricePerKm: 10,
-    rating: 4.6,
-    totalTrips: 567,
-    lastUpdated: new Date().toISOString(),
-  },
-  {
-    id: "amb-004",
-    name: "Life Saver Unit 2",
-    company: "Ghana Ambulance Service",
-    vehicleType: "ALS",
-    status: "available",
-    location: { lat: 5.6350, lng: -0.1750, address: "East Legon, Near A&C Mall" },
-    contact: { phone: "+233 30 277 9999", whatsapp: "+233244000004" },
-    driver: { name: "Yaw Boateng", experience: 6, rating: 4.8 },
-    equipment: ["Defibrillator", "Oxygen", "Stretcher", "Cardiac Monitor", "Suction Unit"],
-    estimatedArrival: 7,
-    distance: 3.2,
-    pricePerKm: 15,
-    rating: 4.7,
-    totalTrips: 890,
-    lastUpdated: new Date().toISOString(),
-  },
-  {
-    id: "amb-005",
-    name: "Critical Care Mobile",
-    company: "Trust Hospital Ambulance",
-    vehicleType: "MICU",
-    status: "offline",
-    location: { lat: 5.5800, lng: -0.1950, address: "Osu, Near Trust Hospital" },
-    contact: { phone: "+233 30 276 5555" },
-    driver: { name: "Efua Darko", experience: 10, rating: 4.85 },
-    equipment: ["Ventilator", "Defibrillator", "IV Pumps", "Incubator", "Cardiac Monitor"],
-    estimatedArrival: undefined,
-    distance: 3.5,
-    pricePerKm: 30,
-    rating: 4.9,
-    totalTrips: 1567,
-    lastUpdated: new Date().toISOString(),
-  },
-  {
-    id: "amb-006",
-    name: "Community Response 5",
-    company: "Ridge Hospital Services",
-    vehicleType: "BLS",
-    status: "available",
-    location: { lat: 5.5550, lng: -0.2100, address: "Ridge, Near Ridge Hospital" },
-    contact: { phone: "+233 30 222 3333", whatsapp: "+233244000006" },
-    driver: { name: "Abena Sarpong", experience: 4, rating: 4.6 },
-    equipment: ["Stretcher", "First Aid Kit", "Oxygen", "AED"],
-    estimatedArrival: 10,
-    distance: 4.8,
-    pricePerKm: 12,
-    rating: 4.5,
-    totalTrips: 423,
-    lastUpdated: new Date().toISOString(),
-  },
-];
+// Status colors for map markers
+const STATUS_COLORS = {
+  available: "#22c55e",
+  busy: "#f59e0b", 
+  offline: "#9ca3af",
+};
 
 export default function AmbulancePage() {
-  const [ambulances, setAmbulances] = useState<AmbulanceService[]>(MOCK_AMBULANCES);
+  const [ambulances, setAmbulances] = useState<AmbulanceService[]>([]);
   const [selectedAmbulance, setSelectedAmbulance] = useState<AmbulanceService | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<"all" | "available" | "busy">("all");
   const [filterType, setFilterType] = useState<"all" | "BLS" | "ALS" | "MICU">("all");
   const [showFilters, setShowFilters] = useState(false);
   const [requestingAmbulance, setRequestingAmbulance] = useState(false);
   const [requestSuccess, setRequestSuccess] = useState(false);
+  const [mapLoaded, setMapLoaded] = useState(false);
+  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+
+  // Map refs
+  const mapContainer = useRef<HTMLDivElement>(null);
+  const map = useRef<mapboxgl.Map | null>(null);
+  const markersRef = useRef<{ [key: string]: mapboxgl.Marker }>({});
+  const userMarkerRef = useRef<mapboxgl.Marker | null>(null);
+
+  // Fetch ambulances from API
+  const fetchAmbulances = useCallback(async (lat: number, lng: number) => {
+    try {
+      setLoading(true);
+      const params = new URLSearchParams({
+        lat: lat.toString(),
+        lng: lng.toString(),
+        maxDistance: "50",
+      });
+      
+      const response = await fetch(`/api/ambulances?${params}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setAmbulances(data.data);
+        setLastUpdate(new Date());
+      }
+    } catch (error) {
+      console.error("Error fetching ambulances:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   // Get user location
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setUserLocation({
+          const loc = {
             lat: position.coords.latitude,
             lng: position.coords.longitude,
-          });
+          };
+          setUserLocation(loc);
+          fetchAmbulances(loc.lat, loc.lng);
         },
         () => {
           // Default to Accra center if location denied
-          setUserLocation({ lat: 5.6037, lng: -0.1870 });
+          const defaultLoc = { lat: 5.6037, lng: -0.1870 };
+          setUserLocation(defaultLoc);
+          fetchAmbulances(defaultLoc.lat, defaultLoc.lng);
         }
       );
+    } else {
+      const defaultLoc = { lat: 5.6037, lng: -0.1870 };
+      setUserLocation(defaultLoc);
+      fetchAmbulances(defaultLoc.lat, defaultLoc.lng);
     }
-  }, []);
+  }, [fetchAmbulances]);
+
+  // Initialize map
+  useEffect(() => {
+    if (!mapContainer.current || map.current || !userLocation) return;
+
+    map.current = new mapboxgl.Map({
+      container: mapContainer.current,
+      style: "mapbox://styles/mapbox/streets-v12",
+      center: [userLocation.lng, userLocation.lat],
+      zoom: 13,
+    });
+
+    map.current.addControl(new mapboxgl.NavigationControl(), "top-right");
+    map.current.addControl(
+      new mapboxgl.GeolocateControl({
+        positionOptions: { enableHighAccuracy: true },
+        trackUserLocation: true,
+        showUserHeading: true,
+      }),
+      "top-right"
+    );
+
+    map.current.on("load", () => {
+      setMapLoaded(true);
+    });
+
+    return () => {
+      if (map.current) {
+        map.current.remove();
+        map.current = null;
+      }
+    };
+  }, [userLocation]);
+
+  // Add user location marker
+  useEffect(() => {
+    if (!map.current || !mapLoaded || !userLocation) return;
+
+    if (userMarkerRef.current) {
+      userMarkerRef.current.remove();
+    }
+
+    const el = document.createElement("div");
+    el.className = "user-marker";
+    el.innerHTML = `
+      <div class="relative">
+        <div class="w-6 h-6 bg-blue-600 rounded-full border-4 border-white shadow-lg flex items-center justify-center">
+          <div class="w-2 h-2 bg-white rounded-full"></div>
+        </div>
+        <div class="absolute -inset-2 bg-blue-400/30 rounded-full animate-ping"></div>
+      </div>
+    `;
+
+    userMarkerRef.current = new mapboxgl.Marker(el)
+      .setLngLat([userLocation.lng, userLocation.lat])
+      .setPopup(new mapboxgl.Popup().setHTML("<strong>Your Location</strong>"))
+      .addTo(map.current);
+  }, [mapLoaded, userLocation]);
+
+  // Update ambulance markers on map
+  useEffect(() => {
+    if (!map.current || !mapLoaded) return;
+
+    // Remove old markers
+    Object.values(markersRef.current).forEach((marker) => marker.remove());
+    markersRef.current = {};
+
+    // Add new markers for each ambulance
+    ambulances.forEach((amb) => {
+      const el = document.createElement("div");
+      el.className = "ambulance-marker cursor-pointer";
+      const statusColor = STATUS_COLORS[amb.status];
+      const isSelected = selectedAmbulance?.id === amb.id;
+      
+      el.innerHTML = `
+        <div class="relative transform transition-transform ${isSelected ? "scale-125" : "hover:scale-110"}">
+          <div class="w-10 h-10 rounded-full flex items-center justify-center shadow-lg border-2 border-white" 
+               style="background-color: ${statusColor}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10 10H6"/>
+              <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/>
+              <path d="M19 18h2a1 1 0 0 0 1-1v-3.28a1 1 0 0 0-.684-.948l-1.923-.641a1 1 0 0 1-.578-.502l-1.539-3.076A1 1 0 0 0 16.382 8H14"/>
+              <path d="M8 8v4"/>
+              <circle cx="17" cy="18" r="2"/>
+              <circle cx="7" cy="18" r="2"/>
+            </svg>
+          </div>
+          ${amb.status === "available" ? `<div class="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white animate-pulse"></div>` : ""}
+          <div class="absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap">
+            <span class="text-xs font-medium bg-white/95 px-2 py-0.5 rounded shadow-sm">
+              ${amb.estimatedArrival ? `${amb.estimatedArrival}m` : "N/A"}
+            </span>
+          </div>
+        </div>
+      `;
+
+      el.addEventListener("click", () => {
+        setSelectedAmbulance(amb);
+        map.current?.flyTo({
+          center: [amb.location.lng, amb.location.lat],
+          zoom: 15,
+          duration: 1000,
+        });
+      });
+
+      const marker = new mapboxgl.Marker(el)
+        .setLngLat([amb.location.lng, amb.location.lat])
+        .addTo(map.current!);
+
+      markersRef.current[amb.id] = marker;
+    });
+  }, [ambulances, mapLoaded, selectedAmbulance]);
+
+  // Auto-refresh ambulance data every 30 seconds
+  useEffect(() => {
+    if (!userLocation) return;
+
+    const interval = setInterval(() => {
+      fetchAmbulances(userLocation.lat, userLocation.lng);
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [userLocation, fetchAmbulances]);
 
   // Filter ambulances
   const filteredAmbulances = ambulances.filter((amb) => {
@@ -208,26 +277,36 @@ export default function AmbulancePage() {
   });
 
   const refreshAmbulances = useCallback(() => {
-    setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      // Randomly update some statuses for demo
-      setAmbulances((prev) =>
-        prev.map((amb) => ({
-          ...amb,
-          lastUpdated: new Date().toISOString(),
-        }))
-      );
-      setLoading(false);
-    }, 1000);
-  }, []);
+    if (userLocation) {
+      fetchAmbulances(userLocation.lat, userLocation.lng);
+    }
+  }, [userLocation, fetchAmbulances]);
 
   const requestAmbulance = async (ambulance: AmbulanceService) => {
     setRequestingAmbulance(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setRequestingAmbulance(false);
-    setRequestSuccess(true);
+    try {
+      const response = await fetch("/api/ambulances", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ambulanceId: ambulance.id,
+          userLocation,
+          phone: "+233000000000", // In production, get from user profile
+          emergencyType: "medical",
+        }),
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        setRequestSuccess(true);
+        // Refresh ambulance list to update statuses
+        refreshAmbulances();
+      }
+    } catch (error) {
+      console.error("Error requesting ambulance:", error);
+    } finally {
+      setRequestingAmbulance(false);
+    }
   };
 
   const getDirectionsUrl = (ambulance: AmbulanceService) => {
@@ -373,105 +452,69 @@ export default function AmbulancePage() {
           {/* Map Section */}
           <div className="lg:col-span-2">
             <Card className="border-0 shadow-lg overflow-hidden">
-              <div className="relative h-[500px] bg-gradient-to-br from-emerald-50 to-blue-50">
-                {/* Map Placeholder with ambulance markers */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="relative w-full h-full">
-                    {/* Grid pattern for map feel */}
-                    <div className="absolute inset-0 opacity-10">
-                      <svg className="w-full h-full">
-                        <defs>
-                          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="currentColor" strokeWidth="1" />
-                          </pattern>
-                        </defs>
-                        <rect width="100%" height="100%" fill="url(#grid)" />
-                      </svg>
+              <div className="relative h-[500px]">
+                {/* Real Mapbox Map */}
+                <div ref={mapContainer} className="absolute inset-0" />
+                
+                {/* Loading overlay */}
+                {(!mapLoaded || loading) && (
+                  <div className="absolute inset-0 bg-gray-100 flex items-center justify-center z-10">
+                    <div className="text-center">
+                      <Loader2 className="w-8 h-8 animate-spin text-red-600 mx-auto mb-2" />
+                      <p className="text-sm text-gray-600">
+                        {!mapLoaded ? "Loading map..." : "Fetching ambulances..."}
+                      </p>
                     </div>
+                  </div>
+                )}
 
-                    {/* User location marker */}
-                    {userLocation && (
-                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
-                        <div className="relative">
-                          <div className="w-6 h-6 bg-blue-600 rounded-full border-4 border-white shadow-lg" />
-                          <div className="absolute -inset-3 bg-blue-400/30 rounded-full animate-ping" />
-                        </div>
-                        <p className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-xs font-medium text-blue-700 whitespace-nowrap">
-                          You are here
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Ambulance markers */}
-                    {sortedAmbulances.map((amb, idx) => {
-                      const angle = (idx / sortedAmbulances.length) * 2 * Math.PI;
-                      const radius = 80 + (amb.distance || 3) * 20;
-                      const x = 50 + Math.cos(angle) * (radius / 5);
-                      const y = 50 + Math.sin(angle) * (radius / 5);
-
-                      return (
-                        <button
-                          key={amb.id}
-                          onClick={() => setSelectedAmbulance(amb)}
-                          className={`absolute transform -translate-x-1/2 -translate-y-1/2 transition-all duration-300 hover:scale-110 z-${
-                            selectedAmbulance?.id === amb.id ? 20 : 5
-                          }`}
-                          style={{ left: `${x}%`, top: `${y}%` }}
-                        >
-                          <div className="relative">
-                            <div
-                              className={`w-10 h-10 rounded-full flex items-center justify-center shadow-lg border-2 border-white transition-all ${
-                                amb.status === "available"
-                                  ? "bg-green-500"
-                                  : amb.status === "busy"
-                                  ? "bg-amber-500"
-                                  : "bg-gray-400"
-                              } ${selectedAmbulance?.id === amb.id ? "ring-4 ring-red-300 scale-125" : ""}`}
-                            >
-                              <Ambulance className="w-5 h-5 text-white" />
-                            </div>
-                            {amb.status === "available" && (
-                              <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white animate-pulse" />
-                            )}
-                            <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap">
-                              <span className="text-[10px] font-medium bg-white/90 px-1.5 py-0.5 rounded shadow">
-                                {amb.estimatedArrival ? `${amb.estimatedArrival}m` : "N/A"}
-                              </span>
-                            </div>
-                          </div>
-                        </button>
-                      );
-                    })}
-
-                    {/* Legend */}
-                    <div className="absolute bottom-4 left-4 bg-white/95 backdrop-blur-sm rounded-lg p-3 shadow-lg">
-                      <p className="text-xs font-semibold text-gray-700 mb-2">Map Legend</p>
-                      <div className="space-y-1.5">
-                        <div className="flex items-center gap-2">
-                          <div className="w-4 h-4 bg-green-500 rounded-full" />
-                          <span className="text-xs text-gray-600">Available</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-4 h-4 bg-amber-500 rounded-full" />
-                          <span className="text-xs text-gray-600">On Call</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-4 h-4 bg-gray-400 rounded-full" />
-                          <span className="text-xs text-gray-600">Offline</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-4 h-4 bg-blue-600 rounded-full" />
-                          <span className="text-xs text-gray-600">Your Location</span>
-                        </div>
-                      </div>
+                {/* Legend */}
+                <div className="absolute bottom-4 left-4 bg-white/95 backdrop-blur-sm rounded-lg p-3 shadow-lg z-10">
+                  <p className="text-xs font-semibold text-gray-700 mb-2">Map Legend</p>
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 bg-green-500 rounded-full" />
+                      <span className="text-xs text-gray-600">Available</span>
                     </div>
-
-                    {/* Map attribution */}
-                    <div className="absolute bottom-4 right-4 text-xs text-gray-400">
-                      Interactive Map View
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 bg-amber-500 rounded-full" />
+                      <span className="text-xs text-gray-600">On Call</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 bg-gray-400 rounded-full" />
+                      <span className="text-xs text-gray-600">Offline</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 bg-blue-600 rounded-full" />
+                      <span className="text-xs text-gray-600">Your Location</span>
                     </div>
                   </div>
                 </div>
+
+                {/* Last updated indicator */}
+                <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg z-10">
+                  <div className="flex items-center gap-2 text-xs text-gray-600">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                    <span>Live tracking • Updated {lastUpdate.toLocaleTimeString()}</span>
+                  </div>
+                </div>
+
+                {/* Center on user button */}
+                {userLocation && map.current && (
+                  <button
+                    onClick={() => {
+                      map.current?.flyTo({
+                        center: [userLocation.lng, userLocation.lat],
+                        zoom: 13,
+                        duration: 1000,
+                      });
+                    }}
+                    className="absolute bottom-4 right-4 bg-white rounded-lg p-2 shadow-lg z-10 hover:bg-gray-50 transition-colors"
+                    title="Center on my location"
+                  >
+                    <Navigation2 className="w-5 h-5 text-blue-600" />
+                  </button>
+                )}
               </div>
             </Card>
           </div>
