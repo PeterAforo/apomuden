@@ -16,7 +16,8 @@ import {
 } from "lucide-react";
 
 // Initialize Mapbox
-mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || "";
+const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || "";
+mapboxgl.accessToken = MAPBOX_TOKEN;
 
 interface AmbulanceService {
   id: string;
@@ -463,8 +464,18 @@ export default function AmbulancePage() {
                 {/* Real Mapbox Map */}
                 <div ref={mapContainer} className="absolute inset-0" />
                 
-                {/* Loading overlay */}
-                {(!mapLoaded || loading) && (
+                {/* Loading overlay or missing token message */}
+                {!MAPBOX_TOKEN ? (
+                  <div className="absolute inset-0 bg-gray-100 flex items-center justify-center z-10">
+                    <div className="text-center p-6">
+                      <AlertTriangle className="w-12 h-12 text-amber-500 mx-auto mb-3" />
+                      <p className="text-sm font-medium text-gray-700 mb-1">Map Configuration Required</p>
+                      <p className="text-xs text-gray-500">
+                        The map service is not configured. Please contact support.
+                      </p>
+                    </div>
+                  </div>
+                ) : (!mapLoaded || loading) && (
                   <div className="absolute inset-0 bg-gray-100 flex items-center justify-center z-10">
                     <div className="text-center">
                       <Loader2 className="w-8 h-8 animate-spin text-red-600 mx-auto mb-2" />
