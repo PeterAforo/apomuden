@@ -122,6 +122,16 @@
 }
 
 /* Mapbox overrides */
+.mapboxgl-map {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.mapboxgl-canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
 .mapboxgl-popup-content {
   @apply rounded-lg shadow-lg p-0 overflow-hidden;
 }

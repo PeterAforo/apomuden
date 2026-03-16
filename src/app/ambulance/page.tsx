@@ -147,28 +147,36 @@ export default function AmbulancePage() {
 
   // Initialize map
   useEffect(() => {
-    if (!mapContainer.current || map.current || !userLocation) return;
+    if (!mounted || !mapContainer.current || map.current || !userLocation || !MAPBOX_TOKEN) return;
 
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: "mapbox://styles/mapbox/streets-v12",
-      center: [userLocation.lng, userLocation.lat],
-      zoom: 13,
-    });
+    try {
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: "mapbox://styles/mapbox/streets-v12",
+        center: [userLocation.lng, userLocation.lat],
+        zoom: 13,
+      });
 
-    map.current.addControl(new mapboxgl.NavigationControl(), "top-right");
-    map.current.addControl(
-      new mapboxgl.GeolocateControl({
-        positionOptions: { enableHighAccuracy: true },
-        trackUserLocation: true,
-        showUserHeading: true,
-      }),
-      "top-right"
-    );
+      map.current.addControl(new mapboxgl.NavigationControl(), "top-right");
+      map.current.addControl(
+        new mapboxgl.GeolocateControl({
+          positionOptions: { enableHighAccuracy: true },
+          trackUserLocation: true,
+          showUserHeading: true,
+        }),
+        "top-right"
+      );
 
-    map.current.on("load", () => {
-      setMapLoaded(true);
-    });
+      map.current.on("load", () => {
+        setMapLoaded(true);
+      });
+
+      map.current.on("error", (e) => {
+        console.error("Mapbox error:", e);
+      });
+    } catch (error) {
+      console.error("Failed to initialize map:", error);
+    }
 
     return () => {
       if (map.current) {
@@ -176,7 +184,7 @@ export default function AmbulancePage() {
         map.current = null;
       }
     };
-  }, [userLocation]);
+  }, [mounted, userLocation]);
 
   // Add user location marker
   useEffect(() => {
@@ -462,7 +470,7 @@ export default function AmbulancePage() {
             <Card className="border-0 shadow-lg overflow-hidden">
               <div className="relative h-[500px]">
                 {/* Real Mapbox Map */}
-                <div ref={mapContainer} className="absolute inset-0" />
+                <div ref={mapContainer} className="absolute inset-0 w-full h-full" style={{ minHeight: '500px' }} />
                 
                 {/* Loading overlay or missing token message */}
                 {!MAPBOX_TOKEN ? (
