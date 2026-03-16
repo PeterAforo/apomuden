@@ -32,6 +32,15 @@ interface HealthNews {
   author?: string;
   readTime?: number;
   tags?: string[];
+  slug?: string;
+}
+
+// Helper to create URL-friendly slugs
+function createSlug(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
 }
 
 const CATEGORIES = [
@@ -266,7 +275,7 @@ export default function NewsPage() {
             className="mb-12"
           >
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Featured Story</h2>
-            <Link href={`/news/${featuredNews.id}`}>
+            <Link href={`/news/${createSlug(featuredNews.title)}`}>
               <div className="relative rounded-2xl overflow-hidden bg-white shadow-lg group cursor-pointer">
                 <div className="grid md:grid-cols-2 gap-0">
                   <div className="relative h-64 md:h-96">
@@ -335,7 +344,7 @@ export default function NewsPage() {
             <div className="grid md:grid-cols-3 gap-6">
               {trendingNews.map((news, index) => (
                 <motion.div key={news.id} variants={fadeInUp}>
-                  <Link href={`/news/${news.id}`}>
+                  <Link href={`/news/${createSlug(news.title)}`}>
                     <div className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow group">
                       <div className="relative h-48">
                         <Image
@@ -394,7 +403,7 @@ export default function NewsPage() {
             >
               {filteredNews.map((news) => (
                 <motion.div key={news.id} variants={fadeInUp}>
-                  <Link href={`/news/${news.id}`}>
+                  <Link href={`/news/${createSlug(news.title)}`}>
                     <div className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all group h-full flex flex-col">
                       <div className="relative h-48">
                         <Image

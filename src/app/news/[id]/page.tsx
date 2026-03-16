@@ -37,6 +37,14 @@ interface HealthNews {
   tags: string[];
 }
 
+// Helper to create URL-friendly slugs
+function createSlug(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+}
+
 const MOCK_NEWS: Record<string, HealthNews> = {
   "1": {
     id: "1",
@@ -181,9 +189,133 @@ const MOCK_NEWS: Record<string, HealthNews> = {
   },
 };
 
+// Add missing articles that are referenced
+const ADDITIONAL_NEWS: Record<string, HealthNews> = {
+  "5": {
+    id: "5",
+    title: "New Hospital Opens in Kumasi",
+    summary: "A state-of-the-art 500-bed hospital has been inaugurated in Kumasi to serve the Ashanti Region.",
+    content: `
+      <p>The President of Ghana has officially inaugurated a new 500-bed hospital in Kumasi, marking a significant milestone in the government's healthcare infrastructure development agenda.</p>
+      
+      <h2>Facility Features</h2>
+      <p>The new hospital, named the Kumasi Metropolitan Hospital, is equipped with:</p>
+      <ul>
+        <li>Modern operating theaters with state-of-the-art equipment</li>
+        <li>Intensive Care Unit (ICU) with 50 beds</li>
+        <li>Neonatal Intensive Care Unit (NICU)</li>
+        <li>Advanced diagnostic imaging center</li>
+        <li>24/7 emergency services</li>
+        <li>Specialized units for cardiology, oncology, and neurology</li>
+      </ul>
+      
+      <h2>Impact on Healthcare</h2>
+      <p>The hospital is expected to significantly reduce the burden on existing healthcare facilities in the Ashanti Region and provide quality healthcare services to over 5 million residents.</p>
+      
+      <p>"This hospital represents our commitment to bringing world-class healthcare to every Ghanaian," said the Minister of Health during the inauguration ceremony.</p>
+    `,
+    category: "Local",
+    date: "2024-01-11",
+    image: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=1200&q=80",
+    isLocal: true,
+    author: "Ministry of Health",
+    readTime: 4,
+    tags: ["hospital", "kumasi", "healthcare", "infrastructure"],
+  },
+  "6": {
+    id: "6",
+    title: "Cholera Prevention Measures Intensified",
+    summary: "Health authorities ramp up cholera prevention efforts following recent cases in coastal regions.",
+    content: `
+      <p>The Ghana Health Service has intensified cholera prevention measures following a spike in cases reported in several coastal communities. The response includes enhanced surveillance, water treatment, and public education campaigns.</p>
+      
+      <h2>Current Situation</h2>
+      <p>Over the past month, health authorities have recorded an increase in cholera cases, primarily in communities with limited access to clean water and proper sanitation facilities.</p>
+      
+      <h2>Prevention Measures</h2>
+      <p>The following measures have been implemented:</p>
+      <ul>
+        <li><strong>Water chlorination:</strong> Free water treatment tablets are being distributed to affected communities</li>
+        <li><strong>Sanitation campaigns:</strong> Community clean-up exercises and proper waste disposal education</li>
+        <li><strong>Hand hygiene:</strong> Installation of handwashing stations in markets and public places</li>
+        <li><strong>Food safety:</strong> Training for food vendors on safe food handling practices</li>
+      </ul>
+      
+      <h2>What You Can Do</h2>
+      <ul>
+        <li>Always drink treated or boiled water</li>
+        <li>Wash hands thoroughly with soap before eating and after using the toilet</li>
+        <li>Eat only properly cooked food</li>
+        <li>Avoid raw vegetables and fruits unless you can peel them yourself</li>
+        <li>Report any cases of severe diarrhea to the nearest health facility immediately</li>
+      </ul>
+    `,
+    category: "Prevention",
+    date: "2024-01-10",
+    image: "https://images.unsplash.com/photo-1584036561566-baf8f5f1b144?w=1200&q=80",
+    isLocal: true,
+    author: "Ghana Health Service",
+    readTime: 5,
+    tags: ["cholera", "prevention", "water safety", "sanitation"],
+  },
+  "7": {
+    id: "7",
+    title: "Free Health Screening Week Announced",
+    summary: "Ghana Health Service announces nationwide free health screening from January 20-27.",
+    content: `
+      <p>The Ghana Health Service, in collaboration with the Ministry of Health, has announced a nationwide Free Health Screening Week scheduled for January 20-27, 2024. This initiative aims to promote early detection of common health conditions.</p>
+      
+      <h2>Available Screenings</h2>
+      <p>The following free screenings will be available:</p>
+      <ul>
+        <li>Blood pressure check</li>
+        <li>Blood sugar (diabetes) screening</li>
+        <li>Body Mass Index (BMI) assessment</li>
+        <li>Eye examination</li>
+        <li>Breast cancer screening (for women)</li>
+        <li>Prostate cancer screening (for men over 40)</li>
+        <li>HIV/AIDS testing</li>
+        <li>Hepatitis B and C screening</li>
+      </ul>
+      
+      <h2>Where to Get Screened</h2>
+      <p>Screenings will be available at:</p>
+      <ul>
+        <li>All government hospitals and health centers</li>
+        <li>Selected community centers</li>
+        <li>Mobile screening units in rural areas</li>
+        <li>Partner private hospitals</li>
+      </ul>
+      
+      <p>No appointment is necessary. Simply visit any participating facility with a valid ID.</p>
+      
+      <h2>Why Get Screened?</h2>
+      <p>Early detection of health conditions can save lives. Many diseases, when caught early, can be effectively managed or cured. Don't miss this opportunity to know your health status.</p>
+    `,
+    category: "Prevention",
+    date: "2024-01-09",
+    image: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=1200&q=80",
+    isLocal: false,
+    author: "Ghana Health Service",
+    readTime: 4,
+    tags: ["screening", "prevention", "free healthcare", "early detection"],
+  },
+};
+
+// Merge all news articles
+const ALL_NEWS: Record<string, HealthNews> = { ...MOCK_NEWS, ...ADDITIONAL_NEWS };
+
+// Create slug-based lookup
+const NEWS_BY_SLUG: Record<string, HealthNews> = {};
+Object.values(ALL_NEWS).forEach(article => {
+  const slug = createSlug(article.title);
+  NEWS_BY_SLUG[slug] = article;
+});
+
 const RELATED_NEWS = [
   {
     id: "5",
+    slug: "new-hospital-opens-in-kumasi",
     title: "New Hospital Opens in Kumasi",
     category: "Local",
     image: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=400&q=80",
@@ -191,6 +323,7 @@ const RELATED_NEWS = [
   },
   {
     id: "6",
+    slug: "cholera-prevention-measures-intensified",
     title: "Cholera Prevention Measures Intensified",
     category: "Prevention",
     image: "https://images.unsplash.com/photo-1584036561566-baf8f5f1b144?w=400&q=80",
@@ -198,6 +331,7 @@ const RELATED_NEWS = [
   },
   {
     id: "7",
+    slug: "free-health-screening-week-announced",
     title: "Free Health Screening Week Announced",
     category: "Prevention",
     image: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&q=80",
@@ -213,8 +347,9 @@ export default function NewsDetailPage() {
   const [bookmarked, setBookmarked] = useState(false);
 
   useEffect(() => {
-    const id = params.id as string;
-    const article = MOCK_NEWS[id];
+    const idOrSlug = params.id as string;
+    // Try to find by ID first, then by slug
+    let article = ALL_NEWS[idOrSlug] || NEWS_BY_SLUG[idOrSlug];
     if (article) {
       setNews(article);
     }
@@ -438,7 +573,7 @@ export default function NewsDetailPage() {
           <h2 className="text-2xl font-bold text-gray-900 mb-8">Related Articles</h2>
           <div className="grid md:grid-cols-3 gap-6">
             {RELATED_NEWS.map((article) => (
-              <Link key={article.id} href={`/news/${article.id}`}>
+              <Link key={article.id} href={`/news/${article.slug}`}>
                 <div className="bg-gray-50 rounded-xl overflow-hidden hover:shadow-md transition-shadow group">
                   <div className="relative h-40">
                     <Image
