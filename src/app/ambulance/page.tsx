@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 
 // Initialize Mapbox
-mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "";
+mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || "";
 
 interface AmbulanceService {
   id: string;
