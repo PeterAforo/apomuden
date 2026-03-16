@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -27,11 +27,17 @@ const NAV_LINKS = [
 export default function Navbar({ onNotificationClick, notificationsEnabled }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
   const { t } = useLanguage();
   const { data: session, status } = useSession();
   
-  const isAuthenticated = status === "authenticated" && session?.user;
+  // Prevent hydration mismatch by only rendering auth-dependent UI after mount
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  
+  const isAuthenticated = mounted && status === "authenticated" && session?.user;
   const userRole = (session?.user as any)?.role || "USER";
   
   // Determine dashboard link based on role
