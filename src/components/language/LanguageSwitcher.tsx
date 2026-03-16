@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Globe, Check, ChevronDown } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
@@ -8,8 +8,16 @@ import { useLanguage } from "@/lib/i18n/LanguageContext";
 export function LanguageSwitcher() {
   const { language, setLanguage, languages } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const currentLanguage = languages.find((l) => l.code === language);
+  
+  // Show consistent content during SSR to prevent hydration mismatch
+  const displayName = mounted ? currentLanguage?.nativeName : "English";
 
   return (
     <div className="relative">
@@ -19,7 +27,7 @@ export function LanguageSwitcher() {
         aria-label="Select language"
       >
         <Globe className="w-4 h-4" />
-        <span className="text-sm font-medium">{currentLanguage?.nativeName}</span>
+        <span className="text-sm font-medium">{displayName}</span>
         <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? "rotate-180" : ""}`} />
       </button>
 

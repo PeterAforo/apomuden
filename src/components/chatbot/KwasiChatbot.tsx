@@ -68,16 +68,23 @@ export default function KwasiChatbot() {
   const [isMinimized, setIsMinimized] = useState(false);
   const [language, setLanguage] = useState<Language>("en");
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([{
-    id: "welcome",
-    role: "assistant",
-    content: INITIAL_MESSAGES.en,
-    timestamp: new Date(),
-  }]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  
+  // Initialize messages after mount to prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+    setMessages([{
+      id: "welcome",
+      role: "assistant",
+      content: INITIAL_MESSAGES.en,
+      timestamp: new Date(),
+    }]);
+  }, []);
 
   const changeLanguage = (lang: Language) => {
     setLanguage(lang);

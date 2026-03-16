@@ -1,11 +1,18 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Heart, Phone, Mail, MapPin, Facebook, Twitter, Instagram, Youtube } from "lucide-react";
 import { NewsletterSection } from "@/components/newsletter";
 
 export default function Footer() {
+  const [year, setYear] = useState<number | null>(null);
+  
+  useEffect(() => {
+    setYear(new Date().getFullYear());
+  }, []);
+  
   return (
     <>
       <NewsletterSection />
@@ -122,7 +129,7 @@ export default function Footer() {
         <div className="container py-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-sm text-gray-500">
-              © {new Date().getFullYear()} OneHealthGH. Ghana Ministry of Health. All rights reserved.
+              © {year || 2024} OneHealthGH. Ghana Ministry of Health. All rights reserved.
             </p>
             <div className="flex items-center gap-6 text-sm text-gray-500">
               <Link href="/privacy" className="hover:text-emerald-600 transition-colors">Privacy Policy</Link>
