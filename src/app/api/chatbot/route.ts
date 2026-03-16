@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import Anthropic from "@anthropic-ai/sdk";
 
-const SYSTEM_PROMPT = `You are Kwasi, a friendly and knowledgeable AI health assistant for Apomuden, Ghana's National Digital Health Platform. Your role is to:
+const SYSTEM_PROMPT = `You are Kwasi, a friendly and knowledgeable AI health assistant for OneHealthGH (formerly Apomuden), Ghana's National Digital Health Platform. Your role is to:
 
 1. Help users find healthcare facilities (hospitals, clinics, pharmacies) in Ghana
 2. Explain how to use the Apomuden platform features
@@ -313,6 +314,20 @@ function getLocalizedResponse(response: string, language: string): string {
   return response;
 }
 
+// Initialize Anthropic client
+const anthropic = process.env.ANTHROPIC_API_KEY 
+  ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+  : null;
+
+// Language-specific system prompts
+const LANGUAGE_PROMPTS: Record<string, string> = {
+  en: "Respond in English.",
+  tw: "Respond in Twi (Akan language of Ghana). Use appropriate Twi greetings and expressions.",
+  ga: "Respond in Ga (language of the Ga people of Ghana). Use appropriate Ga greetings and expressions.",
+  ee: "Respond in Ewe (language of the Ewe people of Ghana and Togo). Use appropriate Ewe greetings and expressions.",
+  ha: "Respond in Hausa (widely spoken in Northern Ghana). Use appropriate Hausa greetings and expressions.",
+};
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -325,7 +340,49 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate response (in production, this would call an AI API like Claude or GPT)
+    // If Anthropic API key is available, use Claude AI
+    if (anthropic) {
+      try {
+        const languageInstruction = LANGUAGE_PROMPTS[language] || LANGUAGE_PROMPTS.en;
+        
+        // Build conversation history for Claude
+        const messages: { role: "user" | "assistant"; content: string }[] = [];
+        
+        // Add previous conversation history
+        if (history && Array.isArray(history)) {
+          history.slice(-6).forEach((msg: Message) => {
+            messages.push({
+              role: msg.role,
+              content: msg.content,
+            });
+          });
+        }
+        
+        // Add current message
+        messages.push({ role: "user", content: message });
+
+        const response = await anthropic.messages.create({
+          model: "claude-3-haiku-20240307",
+          max_tokens: 1024,
+          system: `${SYSTEM_PROMPT}\n\n${languageInstruction}`,
+          messages: messages,
+        });
+
+        const aiResponse = response.content[0].type === "text" 
+          ? response.content[0].text 
+          : "I apologize, but I couldn't generate a response.";
+
+        return NextResponse.json({
+          success: true,
+          response: aiResponse,
+        });
+      } catch (aiError) {
+        console.error("Claude AI error:", aiError);
+        // Fall back to rule-based response
+      }
+    }
+
+    // Fallback: Generate response using rule-based system
     let response = generateResponse(message, history || []);
     
     // Apply language localization

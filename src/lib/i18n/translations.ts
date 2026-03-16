@@ -377,8 +377,194 @@ export const translations: Record<Language, Record<string, string>> = {
   },
 };
 
+// Additional page content translations
+export const pageTranslations: Record<Language, Record<string, string>> = {
+  en: {
+    // Homepage
+    'home.hero.title': 'Find Healthcare Near You',
+    'home.hero.subtitle': 'Access quality healthcare facilities across Ghana. Search hospitals, clinics, and pharmacies with real-time availability.',
+    'home.hero.search_placeholder': 'Search facilities, services, or locations...',
+    'home.hero.cta_facilities': 'Find Facilities',
+    'home.hero.cta_emergency': 'Emergency Help',
+    'home.stats.facilities': 'Healthcare Facilities',
+    'home.stats.regions': 'Regions Covered',
+    'home.stats.users': 'Active Users',
+    'home.stats.ambulances': 'Ambulances Available',
+    'home.nearby.title': 'Healthcare Near You',
+    'home.nearby.subtitle': 'Facilities closest to your location',
+    'home.featured.title': 'Featured Hospitals',
+    'home.featured.subtitle': 'Top-rated healthcare facilities in Ghana',
+    'home.services.title': 'Our Services',
+    'home.services.find_facilities': 'Find Facilities',
+    'home.services.find_facilities_desc': 'Search and compare hospitals, clinics, and pharmacies across Ghana',
+    'home.services.emergency': 'Emergency Services',
+    'home.services.emergency_desc': 'Quick access to ambulance services and emergency care',
+    'home.services.nhis': 'NHIS Coverage',
+    'home.services.nhis_desc': 'Check which facilities accept National Health Insurance',
+    'home.services.compare': 'Compare Prices',
+    'home.services.compare_desc': 'Compare service prices across different healthcare facilities',
+    
+    // Facilities page
+    'facilities.page.title': 'Healthcare Facilities',
+    'facilities.page.subtitle': 'Find hospitals, clinics, and pharmacies across Ghana',
+    'facilities.filters.all_regions': 'All Regions',
+    'facilities.filters.all_types': 'All Types',
+    'facilities.card.view_details': 'View Details',
+    'facilities.card.get_directions': 'Get Directions',
+    'facilities.card.call': 'Call',
+    'facilities.card.reviews': 'reviews',
+    'facilities.card.open_24h': 'Open 24 Hours',
+    'facilities.card.emergency': 'Emergency',
+    'facilities.card.nhis': 'NHIS',
+    
+    // Compare page
+    'compare.title': 'Compare Facilities',
+    'compare.subtitle': 'Compare services and prices across healthcare facilities',
+    'compare.add_facility': 'Add Facility',
+    'compare.remove': 'Remove',
+    'compare.services': 'Services',
+    'compare.prices': 'Prices',
+    'compare.ratings': 'Ratings',
+    
+    // Ambulance page
+    'ambulance.title': 'Find Ambulance',
+    'ambulance.subtitle': 'Real-time ambulance availability near you',
+    'ambulance.available': 'Available',
+    'ambulance.on_call': 'On Call',
+    'ambulance.offline': 'Offline',
+    'ambulance.eta': 'ETA',
+    'ambulance.distance': 'Distance',
+    'ambulance.request': 'Request Ambulance',
+    'ambulance.call_193': 'Call 193',
+    
+    // Footer
+    'footer.about': 'About OneHealthGH',
+    'footer.about_desc': 'Ghana\'s National Digital Health Platform connecting citizens with quality healthcare.',
+    'footer.quick_links': 'Quick Links',
+    'footer.contact': 'Contact Us',
+    'footer.copyright': '© 2024 OneHealthGH. All rights reserved.',
+  },
+  tw: {
+    // Homepage - Twi
+    'home.hero.title': 'Hu Ayaresabea Bɛn Wo',
+    'home.hero.subtitle': 'Nya ayaresabea pa wɔ Ghana nyinaa. Hwehwɛ ayaresabea, clinic, ne pharmacy.',
+    'home.hero.search_placeholder': 'Hwehwɛ ayaresabea, adwuma, anaasɛ beae...',
+    'home.hero.cta_facilities': 'Hu Ayaresabea',
+    'home.hero.cta_emergency': 'Ntɛm Mmoa',
+    'home.stats.facilities': 'Ayaresabea',
+    'home.stats.regions': 'Mantam',
+    'home.stats.users': 'Nkurɔfo a Wɔde Di Dwuma',
+    'home.stats.ambulances': 'Ambulance a Ɛwɔ Hɔ',
+    'home.nearby.title': 'Ayaresabea Bɛn Wo',
+    'home.nearby.subtitle': 'Ayaresabea a ɛbɛn wo beae',
+    'home.featured.title': 'Ayaresabea Titiriw',
+    'home.featured.subtitle': 'Ayaresabea pa wɔ Ghana',
+    'home.services.title': 'Yɛn Adwuma',
+    'home.services.find_facilities': 'Hu Ayaresabea',
+    'home.services.find_facilities_desc': 'Hwehwɛ na fa ayaresabea toto wɔ Ghana',
+    'home.services.emergency': 'Ntɛm Adwuma',
+    'home.services.emergency_desc': 'Nya ambulance ne ntɛm mmoa ntɛm',
+    'home.services.nhis': 'NHIS',
+    'home.services.nhis_desc': 'Hwɛ ayaresabea a wɔgye NHIS',
+    'home.services.compare': 'Fa Boɔ Toto',
+    'home.services.compare_desc': 'Fa adwuma boɔ toto wɔ ayaresabea ahorow so',
+    
+    // Facilities - Twi
+    'facilities.page.title': 'Ayaresabea',
+    'facilities.page.subtitle': 'Hu ayaresabea, clinic, ne pharmacy wɔ Ghana',
+    'facilities.filters.all_regions': 'Mantam Nyinaa',
+    'facilities.filters.all_types': 'Ɔkwan Nyinaa',
+    'facilities.card.view_details': 'Hwɛ Nsɛm',
+    'facilities.card.get_directions': 'Nya Ɔkwan',
+    'facilities.card.call': 'Frɛ',
+    'facilities.card.reviews': 'nsɛm',
+    'facilities.card.open_24h': 'Ɛbue Dɔnhwerew 24',
+    'facilities.card.emergency': 'Ntɛm',
+    'facilities.card.nhis': 'NHIS',
+    
+    // Ambulance - Twi
+    'ambulance.title': 'Hu Ambulance',
+    'ambulance.subtitle': 'Ambulance a ɛwɔ hɔ bɛn wo',
+    'ambulance.available': 'Ɛwɔ Hɔ',
+    'ambulance.on_call': 'Wɔafrɛ No',
+    'ambulance.offline': 'Ɛnni Hɔ',
+    'ambulance.eta': 'Bere a Ɛbɛdu',
+    'ambulance.distance': 'Kwan',
+    'ambulance.request': 'Bisa Ambulance',
+    'ambulance.call_193': 'Frɛ 193',
+    
+    // Footer - Twi
+    'footer.about': 'Fa OneHealthGH Ho',
+    'footer.about_desc': 'Ghana Apɔmuden Digital Platform a ɛde nkurɔfo bɔ ayaresabea pa ho.',
+    'footer.quick_links': 'Nkitahodi Ntɛm',
+    'footer.contact': 'Frɛ Yɛn',
+    'footer.copyright': '© 2024 OneHealthGH. Hokwan nyinaa yɛ yɛn dea.',
+  },
+  ga: {
+    // Homepage - Ga
+    'home.hero.title': 'Fɛɛ Duŋ Shishi Ni Bɔ',
+    'home.hero.subtitle': 'Nya duŋ shishi pa wɔ Ghana mli. Fɛɛ duŋ shishi, clinic, kɛ pharmacy.',
+    'home.hero.search_placeholder': 'Fɛɛ duŋ shishi, dɔŋ, kɛ teŋ...',
+    'home.hero.cta_facilities': 'Fɛɛ Duŋ Shishi',
+    'home.hero.cta_emergency': 'Gbɛkɛ Bɔ',
+    'home.stats.facilities': 'Duŋ Shishi',
+    'home.stats.regions': 'Teŋ Mli',
+    'home.stats.users': 'Bii Ni Wɔyɛ Dɔŋ',
+    'home.stats.ambulances': 'Ambulance Ni Wɔ',
+    
+    // Ambulance - Ga
+    'ambulance.title': 'Fɛɛ Ambulance',
+    'ambulance.subtitle': 'Ambulance ni wɔ bɔ',
+    'ambulance.available': 'Ewɔ',
+    'ambulance.on_call': 'Wɔyɛlɛ Ni',
+    'ambulance.request': 'Bisa Ambulance',
+    'ambulance.call_193': 'Yɛlɛ 193',
+  },
+  ee: {
+    // Homepage - Ewe
+    'home.hero.title': 'Di Atikewɔƒe Le Wò Gbɔ',
+    'home.hero.subtitle': 'Xɔ atikewɔƒe nyuie le Ghana. Di atikewɔƒe, klinik, kple agbale.',
+    'home.hero.search_placeholder': 'Di atikewɔƒe, dɔwɔwɔ, alo teƒe...',
+    'home.hero.cta_facilities': 'Di Atikewɔƒe',
+    'home.hero.cta_emergency': 'Kpekpe Kpɔɖeŋu',
+    'home.stats.facilities': 'Atikewɔƒewo',
+    'home.stats.regions': 'Nutome',
+    'home.stats.users': 'Ezãla Siwo Le Eŋu',
+    'home.stats.ambulances': 'Ambulance Siwo Le',
+    
+    // Ambulance - Ewe
+    'ambulance.title': 'Di Ambulance',
+    'ambulance.subtitle': 'Ambulance siwo le wò gbɔ',
+    'ambulance.available': 'Ele',
+    'ambulance.on_call': 'Wòle Eŋu',
+    'ambulance.request': 'Bia Ambulance',
+    'ambulance.call_193': 'Yɔ 193',
+  },
+  ha: {
+    // Homepage - Hausa
+    'home.hero.title': 'Nemo Asibiti Kusa Da Ku',
+    'home.hero.subtitle': 'Samu asibitoci masu kyau a Ghana. Nemo asibitoci, kilinik, da kantin magani.',
+    'home.hero.search_placeholder': 'Nemo asibitoci, ayyuka, ko wurare...',
+    'home.hero.cta_facilities': 'Nemo Asibitoci',
+    'home.hero.cta_emergency': 'Taimakon Gaggawa',
+    'home.stats.facilities': 'Asibitoci',
+    'home.stats.regions': 'Yankuna',
+    'home.stats.users': 'Masu Amfani',
+    'home.stats.ambulances': 'Motocin Asibiti',
+    
+    // Ambulance - Hausa
+    'ambulance.title': 'Nemo Motar Asibiti',
+    'ambulance.subtitle': 'Motocin asibiti da ke kusa da ku',
+    'ambulance.available': 'Akwai',
+    'ambulance.on_call': 'Ana Kira',
+    'ambulance.request': 'Nemi Motar Asibiti',
+    'ambulance.call_193': 'Kira 193',
+  },
+};
+
 export function t(key: string, lang: Language = 'en'): string {
-  return translations[lang][key] || translations['en'][key] || key;
+  // Check page translations first, then fall back to nav translations
+  return pageTranslations[lang]?.[key] || translations[lang]?.[key] || pageTranslations['en']?.[key] || translations['en']?.[key] || key;
 }
 
 export function getLanguageName(code: Language): string {

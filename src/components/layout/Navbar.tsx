@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Phone, Menu, X, Bell, Heart } from "lucide-react";
+import { Phone, Menu, X, Bell, GitCompare } from "lucide-react";
 import { LanguageSwitcher } from "@/components/language";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
@@ -16,6 +16,7 @@ interface NavbarProps {
 
 const NAV_LINKS = [
   { href: "/facilities", labelKey: "nav.facilities" },
+  { href: "/compare", labelKey: "nav.compare" },
   { href: "/ambulance", labelKey: "nav.ambulance" },
   { href: "/alerts", labelKey: "nav.alerts" },
   { href: "/news", labelKey: "nav.news" },

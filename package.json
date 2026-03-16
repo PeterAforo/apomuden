@@ -21,6 +21,7 @@
     "pwa:vapid": "node scripts/generate-vapid-keys.js"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.78.0",
     "@auth/prisma-adapter": "^2.4.1",
     "@hookform/resolvers": "^3.9.0",
     "@prisma/client": "^5.18.0",
