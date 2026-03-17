@@ -685,34 +685,75 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Quick Emergency Request Section */}
-      <section className="py-16 bg-red-600 text-white">
-        <div className="container">
+      {/* Quick Emergency Request Section with Parallax */}
+      <section className="relative py-20 text-white overflow-hidden">
+        {/* Parallax Background Image */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-fixed"
+          style={{
+            backgroundImage: "url('/img/006.jpg')",
+          }}
+        />
+        
+        {/* Red Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-red-600/90 via-red-700/85 to-red-800/90" />
+        
+        {/* Decorative Elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-20 -right-20 w-80 h-80 bg-white/10 rounded-full blur-3xl" />
+          <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-red-400/20 rounded-full blur-3xl" />
+        </div>
+        
+        <div className="container relative z-10">
           <div className="max-w-4xl mx-auto text-center">
-            <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-6">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-6 border border-white/30"
+            >
               <Ambulance className="h-10 w-10" />
-            </div>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Need Emergency Help?</h2>
-            <p className="text-lg text-white/90 mb-8 max-w-2xl mx-auto">
+            </motion.div>
+            <motion.h2 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-3xl md:text-5xl font-bold mb-4"
+            >
+              Need Emergency Help?
+            </motion.h2>
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+              className="text-lg md:text-xl text-white/90 mb-8 max-w-2xl mx-auto"
+            >
               Request an ambulance or emergency medical services from the nearest facility with just one click.
               Our network of emergency responders is available 24/7.
-            </p>
-            <div className="flex flex-wrap justify-center gap-4">
+            </motion.p>
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2 }}
+              className="flex flex-wrap justify-center gap-4"
+            >
               <button
                 onClick={() => setShowEmergencyModal(true)}
-                className="inline-flex items-center px-8 py-4 bg-white text-red-600 rounded-lg font-bold text-lg hover:bg-gray-100 transition-colors"
+                className="inline-flex items-center px-8 py-4 bg-white text-red-600 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all shadow-lg hover:shadow-xl hover:scale-105"
               >
                 <Ambulance className="h-6 w-6 mr-3" />
                 Request Ambulance Now
               </button>
               <a
                 href="tel:112"
-                className="inline-flex items-center px-8 py-4 bg-red-700 hover:bg-red-800 rounded-lg font-bold text-lg transition-colors"
+                className="inline-flex items-center px-8 py-4 bg-red-800/50 backdrop-blur-sm border-2 border-white/30 hover:bg-red-800 rounded-xl font-bold text-lg transition-all hover:scale-105"
               >
                 <Phone className="h-6 w-6 mr-3" />
                 Call 112
               </a>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
