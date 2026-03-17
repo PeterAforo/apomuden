@@ -81,10 +81,10 @@ interface HealthNews {
 }
 
 const HERO_IMAGES = [
-  "https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=1920&q=80", // African healthcare
-  "https://images.unsplash.com/photo-1631815588090-d4bfec5b1ccb?w=1920&q=80", // African medical team
-  "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=1920&q=80", // African doctor
-  "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=1920&q=80", // Healthcare professional
+  "/img/001.jpg",
+  "/img/002.jpg",
+  "/img/003.jpg",
+  "/img/004.jpg",
 ];
 
 const MOCK_NEWS: HealthNews[] = [
@@ -94,7 +94,7 @@ const MOCK_NEWS: HealthNews[] = [
     summary: "A nationwide vaccination drive targeting children under 5 begins next week across all 16 regions.",
     category: "Vaccination",
     date: "2024-01-15",
-    image: "https://images.unsplash.com/photo-1609220136736-443140cffec6?w=400&q=80", // African child vaccination
+    image: "/img/005.jpg",
     isLocal: false,
   },
   {
@@ -103,7 +103,7 @@ const MOCK_NEWS: HealthNews[] = [
     summary: "Health experts advise on protective measures as malaria cases typically rise during the wet season.",
     category: "Prevention",
     date: "2024-01-14",
-    image: "https://images.unsplash.com/photo-1584036561566-baf8f5f1b144?w=400&q=80", // Mosquito net prevention
+    image: "/img/006.jpg",
     isLocal: true,
   },
   {
@@ -112,7 +112,7 @@ const MOCK_NEWS: HealthNews[] = [
     summary: "Ministry of Health introduces 24/7 mental health support line for all Ghanaians.",
     category: "Mental Health",
     date: "2024-01-13",
-    image: "https://images.unsplash.com/photo-1527613426441-4da17471b66d?w=400&q=80", // African woman healthcare
+    image: "/img/007.jpg",
     isLocal: false,
   },
   {
@@ -121,7 +121,7 @@ const MOCK_NEWS: HealthNews[] = [
     summary: "Updated booster vaccines are now available at all regional hospitals and select health centers.",
     category: "COVID-19",
     date: "2024-01-12",
-    image: "https://images.unsplash.com/photo-1631815589968-fdb09a223b1e?w=400&q=80", // African vaccination
+    image: "/img/008.jpg",
     isLocal: false,
   },
 ];

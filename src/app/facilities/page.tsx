@@ -65,13 +65,16 @@ const TIER_CONFIG: Record<string, { stars: number; label: string; color: string;
   ONE_STAR: { stars: 1, label: "Entry", color: "text-gray-500", bgColor: "bg-gray-100", icon: "🏠" },
 };
 
-// Placeholder images for facilities - African/Ghanaian healthcare themed
+// Default fallback image for facilities without images
+const FACILITY_FALLBACK_IMAGE = "/img/hospital.png";
+
+// Placeholder images for facilities - Ghanaian healthcare themed
 const FACILITY_IMAGES = [
-  "https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=400&h=300&fit=crop", // Modern hospital
-  "https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=400&h=300&fit=crop", // African healthcare
-  "https://images.unsplash.com/photo-1631815588090-d4bfec5b1ccb?w=400&h=300&fit=crop", // African medical team
-  "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&h=300&fit=crop", // African doctor
-  "https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=400&h=300&fit=crop", // Medical facility
+  "/img/001.jpg",
+  "/img/002.jpg",
+  "/img/003.jpg",
+  "/img/004.jpg",
+  "/img/013.jpg",
 ];
 
 const FACILITY_TYPES = [
@@ -129,10 +132,10 @@ function StarRating({ rating }: { rating: number }) {
 
 const PAGE_SIZE = 12;
 
-// Get facility image based on index
+// Get facility image - use provided image, fallback to hospital.png if none
 function getFacilityImage(index: number, imageUrl?: string | null): string {
   if (imageUrl) return imageUrl;
-  return FACILITY_IMAGES[index % FACILITY_IMAGES.length];
+  return FACILITY_FALLBACK_IMAGE;
 }
 
 // Tier Badge Component

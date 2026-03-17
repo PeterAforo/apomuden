@@ -71,7 +71,7 @@ export function NewsletterSection() {
       <div 
         className="absolute inset-0 bg-cover bg-center bg-fixed"
         style={{
-          backgroundImage: "url('https://images.unsplash.com/photo-1631815588090-d4bfec5b1ccb?w=1920&q=80')",
+          backgroundImage: "url('/img/013.jpg')",
         }}
       />
       
