@@ -132,7 +132,7 @@ export function NewsletterSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.5, duration: 0.5 }}
-            className="bg-white/95 backdrop-blur-lg rounded-3xl p-8 md:p-10 shadow-2xl border border-white/50"
+            className="bg-white/95 backdrop-blur-lg rounded-2xl p-6 md:p-8 shadow-2xl border border-white/50 max-w-2xl mx-auto"
           >
             {isSuccess ? (
               <motion.div
@@ -161,176 +161,100 @@ export function NewsletterSection() {
               </motion.div>
             ) : (
               <form onSubmit={handleSubmit}>
-                {/* Method Selection */}
-                <div className="mb-8">
-                  <label className="block text-base font-semibold text-gray-800 mb-4">
+                {/* Method Selection - Compact */}
+                <div className="mb-5">
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">
                     How would you like to receive updates?
                   </label>
-                  <div className="grid grid-cols-3 gap-4">
-                    <motion.button
-                      type="button"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => setMethod("email")}
-                      className={`flex flex-col items-center gap-3 p-5 rounded-2xl border-2 transition-all duration-300 ${
-                        method === "email"
-                          ? "border-emerald-500 bg-gradient-to-br from-emerald-50 to-teal-50 text-emerald-700 shadow-lg shadow-emerald-100"
-                          : "border-gray-200 hover:border-emerald-300 hover:bg-gray-50 text-gray-600"
-                      }`}
-                    >
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                        method === "email" ? "bg-emerald-500 text-white" : "bg-gray-100"
-                      }`}>
-                        <Mail className="w-6 h-6" />
-                      </div>
-                      <span className="text-sm font-semibold">Email</span>
-                    </motion.button>
-                    <motion.button
-                      type="button"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => setMethod("phone")}
-                      className={`flex flex-col items-center gap-3 p-5 rounded-2xl border-2 transition-all duration-300 ${
-                        method === "phone"
-                          ? "border-emerald-500 bg-gradient-to-br from-emerald-50 to-teal-50 text-emerald-700 shadow-lg shadow-emerald-100"
-                          : "border-gray-200 hover:border-emerald-300 hover:bg-gray-50 text-gray-600"
-                      }`}
-                    >
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                        method === "phone" ? "bg-emerald-500 text-white" : "bg-gray-100"
-                      }`}>
-                        <Phone className="w-6 h-6" />
-                      </div>
-                      <span className="text-sm font-semibold">SMS</span>
-                    </motion.button>
-                    <motion.button
-                      type="button"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => setMethod("both")}
-                      className={`flex flex-col items-center gap-3 p-5 rounded-2xl border-2 transition-all duration-300 ${
-                        method === "both"
-                          ? "border-emerald-500 bg-gradient-to-br from-emerald-50 to-teal-50 text-emerald-700 shadow-lg shadow-emerald-100"
-                          : "border-gray-200 hover:border-emerald-300 hover:bg-gray-50 text-gray-600"
-                      }`}
-                    >
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                        method === "both" ? "bg-gradient-to-br from-emerald-500 to-teal-500 text-white" : "bg-gray-100"
-                      }`}>
-                        <div className="flex -space-x-1">
-                          <Mail className="w-5 h-5" />
-                          <Phone className="w-5 h-5" />
-                        </div>
-                      </div>
-                      <span className="text-sm font-semibold">Both</span>
-                    </motion.button>
+                  <div className="flex gap-2">
+                    {[
+                      { key: "email", label: "Email", icon: Mail },
+                      { key: "phone", label: "SMS", icon: Phone },
+                      { key: "both", label: "Both", icon: Mail },
+                    ].map((opt) => (
+                      <button
+                        key={opt.key}
+                        type="button"
+                        onClick={() => setMethod(opt.key as "email" | "phone" | "both")}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 transition-all text-sm font-medium ${
+                          method === opt.key
+                            ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+                            : "border-gray-200 hover:border-emerald-300 text-gray-600"
+                        }`}
+                      >
+                        <opt.icon className="w-4 h-4" />
+                        {opt.label}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
-                {/* Input Fields */}
-                <div className="grid md:grid-cols-2 gap-5 mb-8">
+                {/* Input and Button - Same Line */}
+                <div className="flex flex-col sm:flex-row gap-3 mb-4">
                   {(method === "email" || method === "both") && (
-                    <motion.div
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
-                        Email Address
-                      </label>
-                      <div className="relative group">
-                        <div className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center group-focus-within:bg-emerald-500 transition-colors">
-                          <Mail className="w-5 h-5 text-emerald-600 group-focus-within:text-white transition-colors" />
-                        </div>
-                        <input
-                          type="email"
-                          id="email"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          placeholder="you@example.com"
-                          className="w-full pl-16 pr-4 py-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-0 focus:border-emerald-500 transition-colors text-gray-800 placeholder-gray-400"
-                        />
-                      </div>
-                    </motion.div>
+                    <div className="flex-1 relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <input
+                        type="email"
+                        id="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="you@example.com"
+                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-gray-800 placeholder-gray-400"
+                      />
+                    </div>
                   )}
 
                   {(method === "phone" || method === "both") && (
-                    <motion.div
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-2">
-                        Phone Number
-                      </label>
-                      <div className="relative group">
-                        <div className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center group-focus-within:bg-emerald-500 transition-colors">
-                          <Phone className="w-5 h-5 text-emerald-600 group-focus-within:text-white transition-colors" />
-                        </div>
-                        <input
-                          type="tel"
-                          id="phone"
-                          value={phone}
-                          onChange={(e) => setPhone(e.target.value)}
-                          placeholder="+233 XX XXX XXXX"
-                          className="w-full pl-16 pr-4 py-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-0 focus:border-emerald-500 transition-colors text-gray-800 placeholder-gray-400"
-                        />
-                      </div>
-                    </motion.div>
-                  )}
-                </div>
-
-                {/* Error Message */}
-                {error && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg text-red-700 text-sm flex items-center gap-3"
-                  >
-                    <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-red-500 font-bold">!</span>
+                    <div className="flex-1 relative">
+                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <input
+                        type="tel"
+                        id="phone"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="+233 XX XXX XXXX"
+                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-gray-800 placeholder-gray-400"
+                      />
                     </div>
-                    {error}
-                  </motion.div>
-                )}
+                  )}
 
-                {/* Submit Button */}
-                <div className="flex flex-col sm:flex-row items-center gap-4">
                   <motion.button
                     type="submit"
                     disabled={isLoading}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full sm:w-auto px-10 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-teal-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-lg shadow-emerald-200 hover:shadow-xl hover:shadow-emerald-300"
+                    className="px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-semibold rounded-lg hover:from-emerald-700 hover:to-teal-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap"
                   >
                     {isLoading ? (
-                      <>
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                        Subscribing...
-                      </>
+                      <Loader2 className="w-5 h-5 animate-spin" />
                     ) : (
                       <>
-                        <Send className="w-5 h-5" />
-                        Subscribe Now
+                        <Send className="w-4 h-4" />
+                        Subscribe
                       </>
                     )}
                   </motion.button>
-                  
-                  <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <Shield className="w-4 h-4 text-emerald-500" />
-                    <span>Your data is secure with us</span>
-                  </div>
                 </div>
 
-                {/* Privacy Note */}
-                <p className="mt-6 text-sm text-gray-500 text-center sm:text-left">
-                  By subscribing, you agree to receive health updates from Apomuden. 
-                  You can unsubscribe at any time. Read our{" "}
-                  <a href="/privacy" className="text-emerald-600 hover:text-emerald-700 font-medium hover:underline">
-                    Privacy Policy
-                  </a>
-                  .
-                </p>
+                {/* Error Message */}
+                {error && (
+                  <div className="mb-3 p-3 bg-red-50 border-l-4 border-red-500 rounded text-red-700 text-sm">
+                    {error}
+                  </div>
+                )}
+
+                {/* Security & Privacy */}
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-gray-500">
+                  <div className="flex items-center gap-1">
+                    <Shield className="w-3.5 h-3.5 text-emerald-500" />
+                    <span>Your data is secure</span>
+                  </div>
+                  <span>
+                    By subscribing, you agree to our{" "}
+                    <a href="/privacy" className="text-emerald-600 hover:underline">Privacy Policy</a>
+                  </span>
+                </div>
               </form>
             )}
           </motion.div>
